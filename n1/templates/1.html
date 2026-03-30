@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% load static %}
+{% load extra %}
 {% block title %}1{% endblock title %}
 {% block body %}
 {% comment %} <h1 class='bg-amber-600'>hey</h1> {% endcomment %}
@@ -12,10 +13,24 @@
 {{ 800000000000|intword}}<br>
 <h1 class="text-3xl text-blue-500">Hello</h1>
 <h1 class='text-2xl p-10 m-10 bg-amber-600 w-fit'>Hello</h1>
+<h1>filter</h1>
+{{name|sai}}<br>
+{{age}}<br>
+{{skills}}<br>
+{{ skills.3.frontend }} <br>
 
-{{context}}
-{{name}}
-{{age}}
-{{skills}}
-{{ skills.3.frontend }}
+</h1>{% add 20 20 %} simple tag
+</h1>
+{% show_colors colors %}
+{% comment %} <hr> {% endcomment %}
+{% comment %} {{post}} {% endcomment %}
+ <hr>
+ {% comment %} {% for p in post %}
+    {{p.name}} <br>
+{% endfor %} {% endcomment %}
+<hr>
+{% comment %} {% for p in post %}
+    {{p.name}} <br>
+{% endfor %}  {% endcomment %}
+    
 {% endblock body %}

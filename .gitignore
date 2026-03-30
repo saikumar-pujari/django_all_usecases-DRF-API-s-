@@ -2,8 +2,10 @@
 *.conf
 *.pdf
 *.env
+db.sqlite3
 *.sqlite3
 __pycache__/
+final/__pycache__
 *.py[codz]
 *$py.class
 migrations/

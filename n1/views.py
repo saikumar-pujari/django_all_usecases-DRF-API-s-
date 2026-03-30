@@ -1,14 +1,14 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-# Create your views here.
 from django.contrib.sites.models import Site
+from n1.models import *
 
 
 def hello(request):
     return HttpResponse("sai")
 
 
-def na(req, **kw):
+def nab(req, **kw):
     context = {'status': 'naman!'}
     print(kw.get('name'))
     print(kw.get('year'))
@@ -31,10 +31,25 @@ def n(req):
 
 
 def a(req):
+    # p=na.objects.get(id=1)
+    # p = list(na.objects.all())
+    # p = na.objects.only('name')
+    # p = na.objects.values('name')
+    # p = na.objects.values_list('name', flat=True)
     context = {
         'name': 'sai',
         'age': 22,
         'lang': 'python',
-        'skills': ['django', 'flask', 'fastapi', {'frontend': ['react', 'vue', 'angular']}]
+        'skills': ['django', 'flask', 'fastapi', {'frontend': ['react', 'vue', 'angular']}],
+        # 'post': p,
+        'colors': ["Red", "Blue", "Green"]
     }
+
     return render(req, '1.html', context)
+
+
+def uuid(req, uuid):
+    p = uuidmodel.objects.get(id=uuid)
+    print(p.id)
+    print(p.name)
+    return HttpResponse(p.name)
