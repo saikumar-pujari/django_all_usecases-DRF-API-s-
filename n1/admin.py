@@ -156,7 +156,7 @@ another = anotheradmin(name='anotheradmin')
 # another.register(model.post)
 
 models = django.apps.apps.get_models()
-print(models)
+# print(models)
 for model in models:
     try:
         admin.site.register(model)
