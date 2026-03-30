@@ -33,15 +33,17 @@ def n(req):
 def a(req):
     # p=na.objects.get(id=1)
     # p = list(na.objects.all())
+    p = na.objects.all().order_by()[:50]
     # p = na.objects.only('name')
-    # p = na.objects.values('name')
+    # p = na.objects.values('name').iterator()
+    # p = na.objects.values('name')[:50]
     # p = na.objects.values_list('name', flat=True)
     context = {
         'name': 'sai',
         'age': 22,
         'lang': 'python',
         'skills': ['django', 'flask', 'fastapi', {'frontend': ['react', 'vue', 'angular']}],
-        # 'post': p,
+        'post': p,
         'colors': ["Red", "Blue", "Green"]
     }
 

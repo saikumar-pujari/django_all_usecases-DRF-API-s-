@@ -25,12 +25,12 @@
 {% comment %} <hr> {% endcomment %}
 {% comment %} {{post}} {% endcomment %}
  <hr>
- {% comment %} {% for p in post %}
-    {{p.name}} <br>
-{% endfor %} {% endcomment %}
+ {% for p in post %}
+    {{p.name}}  <br>
+{% endfor %} 
 <hr>
-{% comment %} {% for p in post %}
-    {{p.name}} <br>
-{% endfor %}  {% endcomment %}
+ {% comment %} {% for p in post %}
+    {{p.name}} {{p.id}} {{p.created}} <br>
+{% endfor %}   {% endcomment %}
     
 {% endblock body %}
