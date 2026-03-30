@@ -1,6 +1,11 @@
 import uuid
 from django.db import models
 from django.db.models import Q, F
+from django.utils.translation import gettext_lazy as _
+
+
+class data(models.Model):
+    name = models.CharField(_("testing name"), max_length=50)
 
 
 class usser(models.Model):
