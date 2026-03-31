@@ -1,0 +1,11 @@
+problem:Response to request with pk 5276178c-dfaa-4d3a-965e-6b47971fa174 has content type text/javascript but was unable to parse it
+problem:text/javascript or JSON Parse Error(404(mostly) error in each request of the server)
+sol:python manage.py makemigrations,python manage.py migrate
+
+problem:when we migrate or change the settings of settings file or change DB settings and we want our old data rather than new data DB
+sol:in BASE_DIR = Path(__file__).resolve().parent.parent.parent 
+explaintion: The BASE_DIR variable is used to define the base directory of the project. It is typically set to the parent directory of the current file (which is usually the settings file). By using Path(__file__).resolve().parent.parent.parent, we are navigating up three levels from the current file's location to reach the base directory of the project. This allows us to access other files and directories within the project structure, such as the database file or other configuration files.
+    the last parent points to last parent of the project which is the main folder of the project and the first parent points to the settings file and the second parent points to the folder which contains the settings file and other files like urls.py, wsgi.py, asgi.py etc. so by using this we can access our old data in DB rather than new data DB when we change the settings or migrate.
+
+problem:Not Found: /.well-known/appspecific/com.chrome.devtools.json
+solution:its a dev-tool error in chrome so ignore it and it means there is no such endpointapi or route!
