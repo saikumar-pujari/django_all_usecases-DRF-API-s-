@@ -1,3 +1,5 @@
+#####IMPORTANT: for better problem identifer i use runserver_plus(django_extensions) instead of runserver
+
 problem:Response to request with pk 5276178c-dfaa-4d3a-965e-6b47971fa174 has content type text/javascript but was unable to parse it
 problem:text/javascript or JSON Parse Error(404(mostly) error in each request of the server)
 sol:python manage.py makemigrations,python manage.py migrate
