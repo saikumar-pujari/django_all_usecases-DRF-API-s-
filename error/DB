@@ -1,0 +1,7 @@
+problem:ndjango.db.utils.OperationalError: no such table: n2_test_db
+explain: when you create 2 DB connections, you need to make sure that the model is created in the correct database. If you create a model in one database and then try to access it from another database, you will get an error saying that the model does not exist. To fix this issue, you need to ensure that the model is created in the correct database and that you are accessing it from the same database.
+solution:1)python manage.py migrate n2 zero --database=second_db --fake,2)python manage.py migrate --database=second_db
+
+problem:No migrations to apply
+explain: This error occurs when you try to apply migrations, but there are no new migrations to apply. This can happen if you have already applied all the migrations or if you have not created any new migrations since the last time you applied them. To fix this issue, you can either create new migrations or check if you have already applied all the existing migrations.
+solution:delete the migration files in the migrations folder of your app and then run python manage.py makemigrations to create new migration files. After that, you can run python manage.py migrate to apply the new migrations.
