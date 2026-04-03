@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.contrib.sites.models import Site
 from n1.models import *
+from n1.utils.email import send_welcome_email
 
 
 def hello(request):
@@ -55,3 +56,8 @@ def uuid(req, uuid):
     print(p.id)
     print(p.name)
     return HttpResponse(p.name)
+
+
+def send_email_view(request):
+    send_welcome_email("receiver@gmail.com")
+    return HttpResponse("Email sent!")

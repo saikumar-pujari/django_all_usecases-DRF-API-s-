@@ -1,9 +1,9 @@
 from .base import *
 
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY')
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
 
@@ -20,3 +20,6 @@ DATABASES = {
 }
 
 DATABASE_ROUTERS = ['final.router.SecondAppRouter']
+# DATABASES = {
+#     'default': env.db()
+# }

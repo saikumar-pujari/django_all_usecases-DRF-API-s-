@@ -1,6 +1,10 @@
+import os
+import environ
 from pathlib import Path
-from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+env = environ.Env(debug=(bool, False))
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 
 INSTALLED_APPS = [
@@ -87,3 +91,15 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = env("EMAIL_BACKEND")
+
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = env.int("EMAIL_PORT")
+
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS")
+
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")

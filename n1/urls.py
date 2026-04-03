@@ -14,5 +14,6 @@ urlpatterns = [
     path('e/', n),
     path('1/', a),
     path('uuid/<uuid:uuid>/', uuid),
-    path('uuids/<u:uuid>/', uuid)
+    path('uuids/<u:uuid>/', uuid),
+    path("send-email/", send_email_view),
 ]
