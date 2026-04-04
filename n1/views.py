@@ -13,6 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.sites.models import Site
 from n1.models import (na, uuidmodel,)
 from n1.utils.email import send_welcome_email
+from n1.signals import custom_signal
 
 
 def hello(request):
@@ -255,3 +256,14 @@ def test_caches(request):
 def clear_cache(request):
     cache.clear()
     return HttpResponse("Cache cleared")
+
+
+def send_custom_signal(request):
+    custom_signal.send(sender=None, data="Hello from custom signal!")
+    return HttpResponse("Custom signal sent!")
+
+
+def another_custom_signal_receiver(request):
+    custom_signal.send_robust(
+        sender="saikumar", data='hey', action='custom signal here')
+    return HttpResponse("Another custom signal sent!")

@@ -36,4 +36,6 @@ urlpatterns = [
     path("test-cache/", test_cache),
     path("test-caches/", test_caches),
     path('clear-cache/', clear_cache),
+    path('custom-signal/', send_custom_signal),
+    path('another-custom-signal/', another_custom_signal_receiver),
 ]
