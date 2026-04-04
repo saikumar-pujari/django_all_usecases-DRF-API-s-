@@ -277,3 +277,11 @@ class images(models.Model):
 # models.objects.filter(created__in__gte=datetime(2023,1,1))
 # models.objects.select_related('author') #onetoine and foreign key
 # models.objects.prefetch_related('author') #manytomany
+
+
+class test(models.Model):
+    name = models.CharField(max_length=30)
+    city = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name

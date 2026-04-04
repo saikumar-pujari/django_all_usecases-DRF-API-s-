@@ -26,5 +26,11 @@ urlpatterns = [
     path("login/", login_view),
     path("logout/", logout_view),
     path("dashboard/", dashboard),
+    path("set-cookie/", cokkie),
+    path("get-cookie/", get_cookie),
+    path("set-session/", set_session),
+    path("get-session/", get_session),
+    path("flush-session/", flush_session),
+    # path("log-test/", log_test),
 
 ]

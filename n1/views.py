@@ -1,3 +1,5 @@
+import logging
+from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth import get_user_model, login, logout, authenticate, SESSION_KEY, HASH_SESSION_KEY, BACKEND_SESSION_KEY
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import login_required
@@ -140,7 +142,8 @@ def user_test(request):
     print(f"User is session: {request.session}")
     print(f"User is dict session: {dict(request.session)}")
     print(f"User is session key: {request.session.get(SESSION_KEY)}")
-    return HttpResponse(f"user is {request.user.username} and email is {request.user.email}")
+    site = get_current_site(request)
+    return HttpResponse(f"user is {request.user.username} and email is {request.user.email or 'not provided'} and site is {site.domain}")
 
 
 User = get_user_model()
@@ -166,6 +169,7 @@ def login_view(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
+        request.session['username'] = username
         if user is not None:
             login(request, user)
             return HttpResponse(f"Logged in as {user.username}")
@@ -176,9 +180,55 @@ def login_view(request):
 @login_required
 def logout_view(request):
     logout(request)
+    request.session.flush()
     return HttpResponse("Logged out successfully")
 
 
 @login_required
 def dashboard(request):
     return HttpResponse(f"Welcome {request.user.username}")
+
+
+def cokkie(req):
+    response = HttpResponse("Cookie set")
+    response.set_cookie('username', 'skipper', max_age=3600,
+                        httponly=True, samesite='strict')
+    return response
+
+
+def get_cookie(req):
+    cookie_value = req.COOKIES.get(
+        'username', 'No cookie found')
+    res = HttpResponse(f"Cookie value: {cookie_value}")
+    res.delete_cookie('username')
+    return res
+
+
+def set_session(request):
+    request.session['username'] = 'skippersession'
+    request.session.set_expiry(0)
+    return HttpResponse("Session set")
+
+
+def get_session(request):
+    username = request.session.get('username', 'No session found')
+    request.session.flush()
+    return HttpResponse(f"Session value: {username}")
+    # flush means only 1 data is delete and clear will remove all data from session
+
+
+def flush_session(request):
+    request.session.flush()
+    return HttpResponse("Session flushed")
+
+
+logger = logging.getLogger(__name__)
+
+
+# def log_test(request):
+#     logger.debug("This is a debug message")
+#     logger.info("This is an info message")
+#     logger.warning("This is a warning message")
+#     logger.error("This is an error message")
+#     logger.critical("This is a critical message")
+#     return HttpResponse("Logged some messages!")
