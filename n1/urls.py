@@ -16,4 +16,15 @@ urlpatterns = [
     path('uuid/<uuid:uuid>/', uuid),
     path('uuids/<u:uuid>/', uuid),
     path("send-email/", send_email_view),
+    path("get-name/", get_from_request),
+    path("my-view/", my_view),
+    path("post-view/", post_view),
+    path("api-view/", api_view),
+    path("all-view/", all_view),
+    path("user-test/", user_test),
+    path("register/", register_view),
+    path("login/", login_view),
+    path("logout/", logout_view),
+    path("dashboard/", dashboard),
+
 ]
