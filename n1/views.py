@@ -1,11 +1,13 @@
+import time
 import logging
+import json
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth import get_user_model, login, logout, authenticate, SESSION_KEY, HASH_SESSION_KEY, BACKEND_SESSION_KEY
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required, login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_GET, require_POST
-import json
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib.sites.models import Site
@@ -232,3 +234,24 @@ logger = logging.getLogger(__name__)
 #     logger.error("This is an error message")
 #     logger.critical("This is a critical message")
 #     return HttpResponse("Logged some messages!")
+
+
+@cache_page(60)
+def cached_view(request):
+    return HttpResponse(f'the item has been cached now')
+
+
+def test_cache(request):
+    cache.set("name", "skipper", timeout=60)
+    value = cache.get("name")
+    return HttpResponse(f"Value: {value}")
+
+
+def test_caches(request):
+    name = cache.get("name")
+    return HttpResponse(f"Value from {name}")
+
+
+def clear_cache(request):
+    cache.clear()
+    return HttpResponse("Cache cleared")

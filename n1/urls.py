@@ -32,5 +32,8 @@ urlpatterns = [
     path("get-session/", get_session),
     path("flush-session/", flush_session),
     # path("log-test/", log_test),
-
+    path("cached/", cached_view),
+    path("test-cache/", test_cache),
+    path("test-caches/", test_caches),
+    path('clear-cache/', clear_cache),
 ]

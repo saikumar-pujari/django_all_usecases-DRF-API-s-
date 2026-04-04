@@ -122,27 +122,58 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 #         "level": "DEBUG",
 #     },
 # }
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
 
-    "handlers": {
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": "logs/error.log",
-        },
-        "console": {
-        "level": "DEBUG",
-        "class": "logging.StreamHandler",
-    },
-    },
+#     "handlers": {
+#         "file": {
+#             "level": "DEBUG",
+#             "class": "logging.FileHandler",
+#             "filename": "logs/error.log",
+#         },
+#         "console": {
+#             "level": "DEBUG",
+#             "class": "logging.StreamHandler",
+#         },
+#     },
 
-    "loggers": {
-        "django": {
-            "handlers": ["file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-    },
+#     "loggers": {
+#         "django": {
+#             "handlers": ["file", "console"],
+#             "level": "DEBUG",
+#             "propagate": True,
+#         },
+#     },
+# }
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/1",  # DB 1 in Redis
+#         "TIMEOUT": 60,
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / 'cache',
+        'TIMEOUT': 60*2,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
 }
+# CACHES = {#using database for caching
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+#         'LOCATION': 'cache',
+#         'TIMEOUT': 60*2,
+#         'OPTIONS': {
+#             'MAX_ENTRIES': 1000
+#         }
+#     }
+# }
+# python manage.py createcachetable
