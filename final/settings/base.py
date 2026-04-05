@@ -26,6 +26,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'silk.middleware.SilkyMiddleware',
+    # 'django.middleware.cache.UpdateCacheMiddleware', #onlywith DB cache
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -33,7 +34,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'n1.middleware.middleware',
+    'final.middleware.RateLimitMiddleware',
+    # 'django.middleware.cache.FetchFromCacheMiddleware', #onlywith DB cache
 ]
+
+# APPEND_SLASH = True
 
 ROOT_URLCONF = 'final.urls'
 

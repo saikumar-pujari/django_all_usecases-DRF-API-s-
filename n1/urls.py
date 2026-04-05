@@ -6,8 +6,11 @@ from n1.views import *
 register_converter(four_int, 'f')
 register_converter(uuids, 'u')
 
+app_name = "n1"
+
 urlpatterns = [
-    path('a', hello),
+    path('a/', hello),
+    path('skipper/', hello),
     path('b/<str:name>/', nab),
     path('bb/<f:name>/', nab),
     path('c/<str:name>/<str:kw>/', nab),
@@ -35,6 +38,7 @@ urlpatterns = [
     path("cached/", cached_view),
     path("test-cache/", test_cache),
     path("test-caches/", test_caches),
+    path('cache-demo/<int:user_id>/', cache_demo),
     path('clear-cache/', clear_cache),
     path('custom-signal/', send_custom_signal),
     path('another-custom-signal/', another_custom_signal_receiver),

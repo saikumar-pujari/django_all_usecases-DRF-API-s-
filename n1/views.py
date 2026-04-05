@@ -17,7 +17,17 @@ from n1.signals import custom_signal
 
 
 def hello(request):
-    return HttpResponse("sai")
+    print(request.META.get('REMOTE_ADDR'))
+    # print(request.META)
+    print(request.resolver_match.view_name)
+    print(request.resolver_match.url_name)
+    print(request.resolver_match.app_name)
+    print(request.resolver_match.namespaces)
+    print(request.resolver_match.route)
+    match = request.resolver_match
+    if match and match.app_name == "n1":
+        print("Matched n1 app")
+    return HttpResponse(json.dumps(dict(request.META), default=str), content_type="application/json")
 
 
 def nab(req, **kw):
@@ -251,6 +261,66 @@ def test_cache(request):
 def test_caches(request):
     name = cache.get("name")
     return HttpResponse(f"Value from {name}")
+
+
+def cache_demo(request, user_id):
+    key = f"user:{user_id}"
+
+    # SET
+    cache.set("name", "Sai", timeout=60)
+
+    # GET
+    name = cache.get("name", "default_name")
+
+    # ADD (only if not exists)
+    cache.add("new_key", "only_once", timeout=60)
+
+    # GET OR SET (with callable)
+    user = cache.get_or_set(
+        key,
+        lambda: User.objects.get(id=user_id),
+        timeout=300
+    )
+
+    # INCREMENT
+    cache.set("counter", 1)
+    cache.incr("counter")        # 2
+    cache.incr("counter", 5)     # 7
+
+    # DECREMENT
+    cache.decr("counter")        # 6
+
+    # TOUCH (extend expiry)
+    cache.touch("name", timeout=120)
+
+    # SET MANY
+    cache.set_many({
+        "a": 1,
+        "b": 2,
+        "c": 3
+    }, timeout=60)
+
+    # GET MANY
+    values = cache.get_many(["a", "b", "c"])
+
+    # DELETE
+    cache.delete("new_key")
+
+    # DELETE MANY
+    cache.delete_many(["a", "b"])
+
+    # CHECK EXISTENCE
+    exists = cache.get("name") is not None
+
+    # cache.clear()
+    data = {
+        "name": name,
+        "user": user,
+        "counter": cache.get("counter"),
+        "bulk_values": values,
+        "exists": exists
+    }
+    return HttpResponse(json.dumps(data, default=str), content_type="application/json")
 
 
 def clear_cache(request):

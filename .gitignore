@@ -9,5 +9,7 @@ final/__pycache__/
 *.py[codz]
 *$py.class
 migrations/
-sessions/
-logs/
+*.log
+*.djcache
+*.pot
+sessionid*
