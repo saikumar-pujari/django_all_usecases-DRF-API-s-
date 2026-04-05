@@ -1,3 +1,4 @@
+from asgiref.sync import sync_to_async, async_to_sync
 import time
 import logging
 import json
@@ -7,11 +8,11 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth import get_user_model, login, logout, authenticate, SESSION_KEY, HASH_SESSION_KEY, BACKEND_SESSION_KEY
 from django.contrib.auth.decorators import permission_required, login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods, require_GET, require_POST
+from django.views.decorators.http import require_http_methods, require_GET, require_POST, condition, last_modified
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib.sites.models import Site
-from n1.models import (na, uuidmodel,)
+from n1.models import (na, user, uuidmodel,)
 from n1.utils.email import send_welcome_email
 from n1.signals import custom_signal
 
@@ -337,3 +338,32 @@ def another_custom_signal_receiver(request):
     custom_signal.send_robust(
         sender="saikumar", data='hey', action='custom signal here')
     return HttpResponse("Another custom signal sent!")
+
+
+def DB_sync_async(req):
+    # user = await User.objects.aget(id=1)
+    # user = await User.objects.afirst()
+    # user = await User.objects.alast()
+    # exists = await User.objects.filter(name="Sai").aexists()
+    # users = await sync_to_async(list)(User.objects.all())
+    # count = await User.objects.acount()
+    # user = await User.objects.acreate(name="Sai")
+    # await User.objects.filter(id=1).aupdate(name="New Name")
+    # await User.objects.filter(id=1).adelete()
+    # async for user in User.objects.all():
+    #     print(user.name)
+    # result = await User.objects.aaggregate(total=Count("id"))
+    # obj, created = await User.objects.aget_or_create(name="Sai")
+    # #realted objects
+    # user = await User.objects.aget(id=1)
+    # posts = await sync_to_async(list)(user.posts.all())
+    return HttpResponse("DB operations done asynchronously!")
+
+
+def conditions(req, *args, **kwargs):
+    return "v2"
+
+
+@condition(etag_func=conditions,  last_modified_func=None)
+def conditional_view(req, *args, **kwargs):
+    return HttpResponse("This is a conditional view")
