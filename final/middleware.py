@@ -14,11 +14,11 @@ class RateLimitMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
-        def process_view(self, request, view_func, view_args, view_kwargs):
-            match = request.resolver_match
-            if match and match.app_name == "n2":
-                raise Exception("Blocked n2 app 🚫")
-            print(f"Processing view: {view_func.__name__}")
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        match = request.resolver_match
+        if match and match.app_name == "n2":
+            raise Exception("Blocked n2 app 🚫")
+        print(f"Processing view: {view_func.__name__}")
 
     def process_exception(self, request, exception):
         from django.http import JsonResponse
@@ -30,14 +30,16 @@ class RateLimitMiddleware:
 
         requests = cache.get(key, 0)
 
-        if requests > 10:
+        if requests > 20:
             from django.http import HttpResponse
             return HttpResponse("Too many requests", status=429)
 
         cache.set(key, requests + 1, timeout=60)
 
         if request.path.startswith("/admin/"):
+            # if 'admin' in request.path:
             return self.get_response(request)
+            # raise Exception("Admin access is not allowed man!")
 
         if "skipper" in request.path:
             raise Exception("Invalid query parameter")

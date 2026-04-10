@@ -139,6 +139,8 @@ class book(models.Model):
     author = models.ForeignKey(
         autor, on_delete=models.CASCADE, related_name='books')
     # using related name we can access the books of an author by author.books.all() else we have to do book.objects.filter(author=author) which is less efficient its like reverse relation and we can also do author.books.count() to get the count of books of an author
+    # f=names.objects.all(),s=f.get(name="John Salas"),s.namesproxy
+    # namesproxy.objects.filter(name__name="John Salas")
 
     def __str__(self) -> str:
         return self.name
@@ -211,8 +213,7 @@ class names(models.Model):
 class namesproxy(models.Model):
     name = models.OneToOneField(
         names, on_delete=models.CASCADE, related_name='namesproxy')
-    # f=names.objects.all(),s=f.get(name="John Salas"),s.namesproxy
-    # namesproxy.objects.filter(name__name="John Salas")
+    # onetoone can be accesed using .all() .first() .last() just the names like namesproxy.objects.filter(name__name="John Salas").first() or namesproxy.objects.filter(name__name="John Salas").last() or namesproxy.objects.filter(name__name="John Salas").all() but it will return only one object as its onetoone relation and we can also access the namesproxy of a name using name.namesproxy and we can also check if a name has a namesproxy using hasattr(name,'namesproxy') and we can also check if a namesproxy has a name using hasattr(namesproxy,'name')
 
 # also select_related is used to optimize the queries in foreign key and one to one relationships and prefetch_related is used to optimize the queries in many to many relationships
 # 1 SINGLE query → fetch books + authors together (JOIN) related

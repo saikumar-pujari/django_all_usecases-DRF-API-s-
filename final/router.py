@@ -15,4 +15,12 @@ class SecondAppRouter:
             return db == 'second_db'
         return db == 'default'
 
- 
+    def allow_relation(self, obj1, obj2, **hints):
+        # if obj1._meta.app_label == 'n2' and obj2._meta.app_label == 'n2':
+        #     return True
+        # elif obj1._meta.app_label == 'n2' or obj2._meta.app_label == 'n2':
+        #     return False
+        # db_list = ('default', 'second_db')
+        # if obj1._state.db in db_list and obj2._state.db in db_list:
+        #     return True
+        return True

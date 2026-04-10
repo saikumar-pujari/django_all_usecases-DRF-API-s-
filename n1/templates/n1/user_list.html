@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}User List{% endblock title %}
+{% block body %}
+<h1>User List</h1>
+{% for i in users %}
+    <p>{{ i.name }}</p> 
+{% endfor %}
+{% endblock body %}
+    

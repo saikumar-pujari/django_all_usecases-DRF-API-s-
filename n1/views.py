@@ -1,3 +1,8 @@
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.urls import reverse
+from django.core.signing import Signer, BadSignature
 from asgiref.sync import sync_to_async, async_to_sync
 import time
 import logging
@@ -12,19 +17,19 @@ from django.views.decorators.http import require_http_methods, require_GET, requ
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib.sites.models import Site
-from n1.models import (na, user, uuidmodel,)
+from n1.models import (na, user, uuidmodel, usser, data, book)
 from n1.utils.email import send_welcome_email
 from n1.signals import custom_signal
 
 
 def hello(request):
-    print(request.META.get('REMOTE_ADDR'))
+    print(f"Request IP: {request.META.get('REMOTE_ADDR')}")
     # print(request.META)
-    print(request.resolver_match.view_name)
-    print(request.resolver_match.url_name)
-    print(request.resolver_match.app_name)
-    print(request.resolver_match.namespaces)
-    print(request.resolver_match.route)
+    print(f"View Name: {request.resolver_match.view_name}")
+    print(f"URL Name: {request.resolver_match.url_name}")
+    print(f"App Name: {request.resolver_match.app_name}")
+    print(f"Namespaces: {request.resolver_match.namespaces}")
+    print(f"Route: {request.resolver_match.route}")
     match = request.resolver_match
     if match and match.app_name == "n1":
         print("Matched n1 app")
@@ -367,3 +372,118 @@ def conditions(req, *args, **kwargs):
 @condition(etag_func=conditions,  last_modified_func=None)
 def conditional_view(req, *args, **kwargs):
     return HttpResponse("This is a conditional view")
+
+
+signer = Signer()
+
+
+def register(request):
+    user_id = 5  # assume user created
+
+    # create signed token
+    token = signer.sign(str(user_id))
+
+    # create verification link
+    verify_url = request.build_absolute_uri(
+        reverse('verify_email') + f'?token={token}'
+    )
+
+    print("Verification link:", verify_url)
+
+    return HttpResponse(f"User registered! Check console for link.")
+
+
+def verify_email(request):
+    token = request.GET.get('token')
+
+    try:
+        # verify token
+        user_id = signer.unsign(token)
+        # activate user (fake logic)
+        return HttpResponse(f"User {user_id} verified successfully ✅")
+    except BadSignature:
+        return HttpResponse("Invalid or tampered link ❌")
+
+
+def user_update(request, id):
+    if request.method == "PUT":
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        user = User.objects.filter(id=id).first()
+        if not user:
+            return JsonResponse({"error": "User not found"}, status=404)
+        allowed_fields = ["username", "email", "age"]
+        updated_fields = {}
+        for field, value in data.items():
+            if field in allowed_fields:
+                setattr(user, field, value)
+                updated_fields[field] = value
+        user.save()
+        return JsonResponse({
+            "message": "User updated successfully",
+            "updated_data": updated_fields
+        })
+
+
+def user_get_dynamic(request, id):
+    user = User.objects.filter(id=id).first()
+    if not user:
+        return JsonResponse({"error": "Not found"}, status=404)
+    data = json.loads(request.body.decode("utf-8"))
+    response = {}
+    for field in data.keys():
+        if hasattr(user, field):
+            response[field] = getattr(user, field)
+    return JsonResponse(response)
+
+
+def names(req):
+    d = data.objects.get(id=1)
+    json_string = '{"name": "Alice", "age": 30, "is_student": false}'
+    datas = json.loads(json_string)
+    p = datas.get("fields", [])
+    print(p)
+    return HttpResponse(d.name)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MyView(View):
+    def get(self, request):
+        return HttpResponse("This is a GET request")
+
+    def post(self, request):
+        return HttpResponse("This is a POST request")
+
+    def put(self, request):
+        return HttpResponse("This is PUT request")
+
+    def patch(self, request):
+        return HttpResponse("This is a PATCH request")
+
+    def delete(self, request):
+        return HttpResponse("This is a DELETE request")
+
+# list,create,retrieve,update,delete,viewset,modelviewset,serializer,routers
+# dispatch,get,post,query_set(),get_context_data(),form_valid(),form_invalid(),get_object(),get_queryset(),get_serializer(),get_serializer_class(),perform_create(),perform_update(),perform_destroy()
+
+
+class UserListView(ListView):
+    model = book
+    template_name = 'n1/user_list.html'
+    context_object_name = 'users'
+
+
+class detailview(DetailView):
+    model = book
+    template_name = 'n1/user_detail.html'
+    context_object_name = 'user'
+    pk_url_kwarg = 'id'
+
+
+class createview(CreateView):
+    model = book
+    fields = ['name', 'author']
+    template_name = 'n1/user_create.html'
+    success_url = '/n1/list/'

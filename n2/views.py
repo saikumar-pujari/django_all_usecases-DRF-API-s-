@@ -4,4 +4,5 @@ from django.http import HttpResponse
 
 
 def hello(request):
+    print(request.resolver_match.app_name)
     return HttpResponse("saikumar")
