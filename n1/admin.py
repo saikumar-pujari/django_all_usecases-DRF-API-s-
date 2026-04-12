@@ -1,5 +1,11 @@
+from typing import Any
+from urllib import request
+
 import django.apps
 from django.contrib import admin
+from django.forms.models import ModelForm
+from django.http import HttpRequest
+from django.http.response import HttpResponse
 
 from .models import *
 
@@ -22,6 +28,48 @@ class postAdmin(admin.ModelAdmin):
     ordering = ('id',)
     list_display_links = ('id', 'title')
     readonly_fields = ('views',)
+    # the get_form method is used to customize the form that is used to create and edit objects in the admin interface. In this case, we are disabling the 'status' field for non-superusers, so that they cannot change the status of a post.
+    # here the obj refers to creting or updateing an object if obj is None then it is creating an object otherwise it is updating an object
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj, change, **kwargs)
+        if not request.user.is_superuser:
+            form.base_fields['status'].disabled = True
+        if obj:
+            print(f"Editing object: {obj}")
+        else:
+            print("Adding object")
+            #  if obj:  # CHANGE(obj exists)
+            #     kwargs['fields'] = ['name', 'status']
+            # else:    # ADD(obj does not exist or creating an object)
+            #     kwargs['fields'] = ['name']
+
+        return form
+
+    def get_object(self, request: HttpRequest, object_id: str, from_field: None = ...) -> Any | None:
+        obj = super().get_object(request, object_id, from_field)
+        if obj and not request.user.is_superuser:
+            return obj
+        # return print("You are not allowed to view this object")
+        return None
+
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
+    #     if request.user.is_superuser:
+    #         return qs
+    #     return qs.filter(user=request.user)
+
+    def has_delete_permission(self, request: HttpRequest, obj: Any | None = ...) -> bool:
+        return False
+
+    def history_view(self, request, object_id, extra_context=None):
+
+        # extra_context = extra_context or {}  # ✅ FIX
+
+        # extra_context['msg'] = "Hello 🔥"
+
+        return super().history_view(request, object_id, extra_context)
+
     # def is_published(self, obj):
     #     return obj.status == 'published'
     # is_published.boolean = True
@@ -162,7 +210,8 @@ for model in models:
         admin.site.register(model)
     except admin.sites.AlreadyRegistered:
         pass
-
+# admin.site.unregister(django.contrib.auth.models.Group)
+# admin.site.unregister(django.contrib.auth.models.User)
 # admin.site.unregister(django.contrib.sessions.models.Session)
 
 # @admin.register(Post)

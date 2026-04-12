@@ -153,26 +153,28 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 #         },
 #     },
 # }
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/1",  # DB 1 in Redis
-#         "TIMEOUT": 60,
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         }
-#     }
-# }
+# Redis_Decode_Responses = True
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': BASE_DIR / 'cache',
-        'TIMEOUT': 60*2,
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # DB 1 in Redis
+        "TIMEOUT": 60,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "Decode_Responses": True,
         }
     }
 }
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         'LOCATION': BASE_DIR / 'cache',
+#         'TIMEOUT': 60*2,
+#         'OPTIONS': {
+#             'MAX_ENTRIES': 1000
+#         }
+#     }
+# }
 # CACHES = {#using database for caching
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',

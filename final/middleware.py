@@ -18,7 +18,7 @@ class RateLimitMiddleware:
         match = request.resolver_match
         if match and match.app_name == "n2":
             raise Exception("Blocked n2 app 🚫")
-        print(f"Processing view: {view_func.__name__}")
+        # print(f"Processing view: {view_func.__name__}")
 
     def process_exception(self, request, exception):
         from django.http import JsonResponse
@@ -30,11 +30,15 @@ class RateLimitMiddleware:
 
         requests = cache.get(key, 0)
 
-        if requests > 20:
+        if requests > 70:
             from django.http import HttpResponse
             return HttpResponse("Too many requests", status=429)
 
         cache.set(key, requests + 1, timeout=60)
+        # if requests:
+        #     cache.incr(key)
+        # else:
+        #     cache.set(key, 1, timeout=60)
 
         if request.path.startswith("/admin/"):
             # if 'admin' in request.path:

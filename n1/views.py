@@ -1,3 +1,4 @@
+from n1.redis_client import redis_client
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -33,6 +34,11 @@ def hello(request):
     match = request.resolver_match
     if match and match.app_name == "n1":
         print("Matched n1 app")
+    print(f'session_key: {request.session.session_key}')
+    # print(request.session.create()) #is session is not created then it will create session and return session key otherwise it will return None
+    # print(f'session_key: {request.session.session_key}')
+    # print(request.session.create())
+    # print(f'session_key: {request.session.session_key}')
     return HttpResponse(json.dumps(dict(request.META), default=str), content_type="application/json")
 
 
@@ -259,7 +265,10 @@ def cached_view(request):
 
 
 def test_cache(request):
+    # data = list(na.objects.all())
+    # print(data)x
     cache.set("name", "skipper", timeout=60)
+    # cache.set("list", data, timeout=60*2)
     value = cache.get("name")
     return HttpResponse(f"Value: {value}")
 
@@ -337,6 +346,36 @@ def clear_cache(request):
 def send_custom_signal(request):
     custom_signal.send(sender=None, data="Hello from custom signal!")
     return HttpResponse("Custom signal sent!")
+
+
+# def channel(req):
+#     msg = req.GET.get("msg", "hello")
+#     cache.set("channel:chat", msg, timeout=60)
+#     return HttpResponse("channel layer view")
+
+
+def channel(request):
+    msg = request.GET.get("msg", "hello")
+    redis_client.publish("chat_channel", msg)
+
+    return JsonResponse({
+        "status": "sent",
+        "message": msg
+    })
+
+
+def receive_channel(request):
+    pubsub = redis_client.pubsub()
+    pubsub.subscribe("chat_channel")
+
+    print("Listening to chat_channel...")
+    # dont use .listen() in production as it will block the thread, use async or separate worker for listening to channel
+    # rather use .get_message() in a loop with sleep to check for new messages without blocking the thread
+    for message in pubsub.listen():
+        if message["type"] == "message":
+            print("Received:", message["data"])
+    return JsonResponse({
+        "status": "listening"})
 
 
 def another_custom_signal_receiver(request):
