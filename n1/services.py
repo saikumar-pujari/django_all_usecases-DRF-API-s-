@@ -73,3 +73,105 @@ def create_na(name, price):
         print("⚠️ Cache write failed")
 
     return na
+
+
+from django_redis import get_redis_connection
+
+r = get_redis_connection("default")
+
+
+class WalletService:
+
+    @staticmethod
+    def set_balance(user_id, amount):
+        """
+        Initialize or reset balance
+        """
+        r.set(f"wallet:{user_id}", amount)
+
+    @staticmethod
+    def get_balance(user_id):
+        balance = r.get(f"wallet:{user_id}")
+        return int(balance) if balance else 0
+
+    @staticmethod
+    def deduct_balance(user_id, amount):
+        """
+        Deduct money safely using Redis transaction
+        """
+        key = f"wallet:{user_id}"
+
+        with r.pipeline() as pipe:
+            while True:
+                try:
+                    # 1. Watch the key
+                    pipe.watch(key)
+
+                    # 2. Read current balance
+                    balance = pipe.get(key)
+                    balance = int(balance) if balance else 0
+
+                    # 3. Check condition
+                    if balance < amount:
+                        pipe.unwatch()
+                        return {
+                            "status": False,
+                            "message": "Insufficient balance"
+                        }
+
+                    # 4. Start transaction
+                    pipe.multi()
+
+                    # 5. Update balance
+                    pipe.set(key, balance - amount)
+
+                    # 6. Execute
+                    pipe.execute()
+
+                    return {
+                        "status": True,
+                        "message": "Deducted successfully",
+                        "remaining_balance": balance - amount
+                    }
+
+                except Exception:
+                    # Retry if another request modified the key
+                    continue
+
+
+
+
+# from django_redis import get_redis_connection
+# r = get_redis_connection("default")
+
+
+# def deduct_balance(user_id, amount):
+#     script = """
+#     local key = KEYS[1]
+#     local amount = tonumber(ARGV[1])
+
+#     local balance = tonumber(redis.call('GET', key) or "0")
+
+#     if balance < amount then
+#         return -1
+#     end
+
+#     balance = balance - amount
+#     redis.call('SET', key, balance)
+
+#     return balance
+#     """
+
+#     result = r.eval(script, 1, f"wallet:{user_id}", amount)
+#    #r.eval(script, numkeys, key1, key2, ..., arg1, arg2, ...)
+
+#     if result == -1:
+#         return {
+#             "status": False,
+#             "message": "Insufficient balance"
+#         }
+
+#     return {
+#         "status": True,
+#         "remaining_balance": result
+#     }

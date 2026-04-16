@@ -209,3 +209,32 @@ CACHES = {
 #     }
 # }
 # python manage.py createcachetable
+
+
+###production_code
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+
+#         # Sentinel nodes (NOT Redis master port)
+#         "LOCATION": [
+#             "redis://127.0.0.1:26379/1",
+#             "redis://127.0.0.1:26380/1",
+#             "redis://127.0.0.1:26381/1",
+#         ],
+
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.SentinelClient",
+
+#             # must match your sentinel.conf
+#             "SENTINEL_KWARGS": {
+#                 "service_name": "mymaster",
+#             },
+
+#             # optional but recommended
+#             "CONNECTION_POOL_KWARGS": {
+#                 "max_connections": 50,
+#             },
+#         }
+#     }
+# }
