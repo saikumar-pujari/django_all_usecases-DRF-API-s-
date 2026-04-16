@@ -1,4 +1,5 @@
 import os
+import django_redis
 import environ
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -153,7 +154,7 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 #         },
 #     },
 # }
-# Redis_Decode_Responses = True
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -165,6 +166,28 @@ CACHES = {
         }
     }
 }
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://mymaster/0",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.SentinelClient",
+#             "SENTINELS": [
+#                 ("127.0.0.1", 26379),
+#             ],
+#         },
+#        #for multiple sentinels only
+#        # "OPTIONS": {
+#        #     "CLIENT_CLASS": "django_redis.client.SentinelClient",
+#        #     "SENTINELS": [
+#        #         ("127.0.0.1", 26379),
+#        #         ("127.0.0.1", 26380),
+#        #         ("127.0.0.1", 26381),
+#        #     ],
+#        #     "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
+#        # },
+#     }
+# }
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',

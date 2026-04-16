@@ -11,3 +11,6 @@ explaintion: The BASE_DIR variable is used to define the base directory of the p
 
 problem:Not Found: /.well-known/appspecific/com.chrome.devtools.json
 solution:its a dev-tool error in chrome so ignore it and it means there is no such endpointapi or route!
+
+problem:cant parse the response of the server in the browser and it shows text/javascript or JSON Parse Error
+solution:This error occurs when the server is returning a response with a content type of text/javascript, but the browser is unable to parse it as JavaScript or JSON. This can happen if the server is returning an error page (like a 404 Not Found) instead of the expected JavaScript or JSON response. To fix this issue, you can check the server logs to see if there are any errors being thrown when handling the request. Additionally, you can use browser developer tools to inspect the network requests and responses to identify any issues with the content being returned by the server.
