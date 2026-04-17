@@ -215,26 +215,23 @@ CACHES = {
 # CACHES = {
 #     "default": {
 #         "BACKEND": "django_redis.cache.RedisCache",
-
-#         # Sentinel nodes (NOT Redis master port)
-#         "LOCATION": [
-#             "redis://127.0.0.1:26379/1",
-#             "redis://127.0.0.1:26380/1",
-#             "redis://127.0.0.1:26381/1",
-#         ],
-
+#         "LOCATION": "redis://mymaster/0",
 #         "OPTIONS": {
 #             "CLIENT_CLASS": "django_redis.client.SentinelClient",
-
-#             # must match your sentinel.conf
-#             "SENTINEL_KWARGS": {
-#                 "service_name": "mymaster",
-#             },
-
-#             # optional but recommended
+#             "SENTINELS": [
+#                 ("redis-sentinel", 26379),
+#             ],
+#             "SERVICE_NAME": "mymaster",
+#             "CONNECTION_FACTORY": "django_redis.pool.SentinelConnectionFactory",
+#             "SENTINEL_KWARGS": {},
+#             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
 #             "CONNECTION_POOL_KWARGS": {
 #                 "max_connections": 50,
+#                 "retry_on_timeout": True,
 #             },
-#         }
+#             "SOCKET_CONNECT_TIMEOUT": 5,
+#             "SOCKET_TIMEOUT": 5,
+#         },
+#         "TIMEOUT": 300,
 #     }
 # }
