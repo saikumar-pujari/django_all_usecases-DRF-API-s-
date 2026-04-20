@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}User Delete{% endblock title %}
+{% block body %}
+<h1>User Detail</h1>
+<form action="" method="post">
+    {% csrf_token %}
+    {{object.name}} <br>
+    {{object.id}} <br>
+    {{object.author}} <br>
+    <p>Are you sure you want to delete "{{ object.name }}"?</p>
+    <button class="bg-amber-900" type="submit">Yes, delete</button>
+</form>
+
+{% endblock body %}
+    

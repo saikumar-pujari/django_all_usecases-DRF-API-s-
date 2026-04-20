@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}User List{% endblock title %}
+{% block body %}
+<h1>User List</h1>
+{% comment %} {% for i in object_list %} {% endcomment %}
+{% for i in users %}
+    <p class='bg-amber-500 font-bold text-green-800'>{{ i.name }}</p> 
+{% endfor %}
+{{ extra_data }}
+
+{% endblock body %}
+    

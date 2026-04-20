@@ -1,4 +1,6 @@
-from n1.redis_client import redis_client
+# from n1.redis_client import redis_client
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -487,9 +489,53 @@ def names(req):
     return HttpResponse(d.name)
 
 
+# Request → as_view() → dispatch() → get()/post()
+class dispatch(View):
+    def dispatch(self, request, *args, **kwargs):
+        print("Before dispatch")
+        if not request.user.is_authenticated:
+            response = HttpResponse("Unauthorized")
+        response = super().dispatch(request, *args, **kwargs)
+        print("After dispatch")
+        return response
+
+    def get(self, request):
+        print("Inside GET method")
+        return HttpResponse("GET response")
+
+    # def post(self, request):
+    #     return HttpResponse("POST response")
+
+
+class dispatchtest(dispatch):
+    def get(self, request):
+        print("Inside GET method of dispatchtest")
+        return HttpResponse("GET response from dispatchtest")
+
+
+class AuthMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return HttpResponse("Unauthorized")
+
+        print("AuthMixin before dispatch")
+        response = super().dispatch(request, *args, **kwargs)
+        print(response)
+        print(response.content)
+        print("AuthMixin after dispatch")
+        return response
+
+
+class DashboardView(AuthMixin, View):
+    def get(self, request, *args, **kwargs):
+        print("Inside GET")
+        return HttpResponse("Dashboard")
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class MyView(View):
     def get(self, request):
+        super().dispatch(request)
         return HttpResponse("This is a GET request")
 
     def post(self, request):
@@ -504,7 +550,25 @@ class MyView(View):
     def delete(self, request):
         return HttpResponse("This is a DELETE request")
 
-# list,create,retrieve,update,delete,viewset,modelviewset,serializer,routers
+
+class loginmixin(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = 'n1.view_na'
+# class loginmixin(LoginRequiredMixin,  View):
+#     permission_required = 'n1.view_na'
+
+    def get(self, request):
+        return HttpResponse("This is a GET request for authenticated users only")
+
+
+class JSONResponseMixin:
+    def render_json(self, data):
+        return JsonResponse(data)
+
+
+class MyAPI(JSONResponseMixin, View):
+    def get(self, request):
+        return self.render_json({"msg": "Hello"})
+
 # dispatch,get,post,query_set(),get_context_data(),form_valid(),form_invalid(),get_object(),get_queryset(),get_serializer(),get_serializer_class(),perform_create(),perform_update(),perform_destroy()
 
 
@@ -514,15 +578,114 @@ class UserListView(ListView):
     context_object_name = 'users'
 
 
+# class detailview(DetailView):
+#     model = book
+#     template_name = 'n1/user_detail.html'
+#     context_object_name = 'user'
+#     pk_url_kwarg = 'id'
+
+
+# class createview(CreateView):
+#     model = book
+#     fields = ['name', 'author']
+#     template_name = 'n1/user_create.html'
+#     success_url = '/n1/list/'
+
+
+class listview(ListView):
+    model = book
+    queryset = book.objects.all()
+    template_name = 'n1/book_list.html'
+    # content_type = 'application/json'
+    context_object_name = 'users'
+
+    def get_queryset(self):
+        return book.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['extra_data'] = 'This is some extra data'
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        print("Rendering template...")
+        return super().render_to_response(context, **response_kwargs)
+
+
 class detailview(DetailView):
     model = book
-    template_name = 'n1/user_detail.html'
-    context_object_name = 'user'
+    context_object_name = 'objectsss'
     pk_url_kwarg = 'id'
+    # int_field = 'id'
 
 
-class createview(CreateView):
+# class ProductDetailView(DetailView):
+#     model = book
+#     slug_field = "slug"
+#     slug_url_kwarg = "slug"
+
+#     def get_object(self):
+#         obj = super().get_object()
+#         print(obj.name)
+#         return obj
+
+class ProductCreateView(CreateView):
     model = book
+    # fields = ['name', 'price', 'description']
     fields = ['name', 'author']
-    template_name = 'n1/user_create.html'
-    success_url = '/n1/list/'
+    # template_name = "product_form.html"
+    success_url = "/n1/mylist/"
+
+    def dispatch(self, request, *args, **kwargs):
+        print("CreateView called")
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        print("Form is valid")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        print("Form errors:", form.errors)
+        return super().form_invalid(form)
+
+
+class ProductUpdateView(UpdateView):
+    model = book
+    # fields = ['name', 'price', 'description']
+    fields = ['name', 'author']
+    # template_name = "product_form.html"
+    success_url = "/n1/mylist/"
+
+    def dispatch(self, request, *args, **kwargs):
+        print("UpdateView called")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_object(self):
+        return get_object_or_404(book, pk=self.kwargs['pk'])
+
+    def form_valid(self, form):
+        print("Form valid - updating")
+        return super().form_valid(form)
+
+
+class deletebook(DeleteView):
+    model = book
+    template_name = "n1/book_delete.html"
+    success_url = "/n1/mylist/"
+
+    def dispatch(self, request, *args, **kwargs):
+        print("DeleteView called")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_object(self):
+        res = get_object_or_404(book, pk=self.kwargs['pk'])
+        print(f"Deleting book: {res}")
+        return res
+
+
+# get_serializer()
+# get_serializer_class()
+# perform_create()
+# perform_update()
+# perform_destroy()
+#  form.instance.updated_by = self.request.user

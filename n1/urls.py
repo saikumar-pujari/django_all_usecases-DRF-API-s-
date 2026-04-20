@@ -48,7 +48,18 @@ urlpatterns = [
     path('conditional-view/', conditional_view),
     path('register/', register, name='register'),
     path('verify/', verify_email, name='verify_email'),
-    path('my-view-class/', MyView.as_view(), name='my_view_class'),
+    path('myviewclass/', MyView.as_view(), name='my_view_class'),
     path('list/', UserListView.as_view(), name='user_list'),
+    path('dispatch/', dispatch.as_view(), name='dispatch_view'),
+    path('dispatchtest/', dispatchtest.as_view(), name='dispatch_test_view'),
+    path('dashboard1/', DashboardView.as_view(), name='dashboard'),
+    path('loginmixin/', loginmixin.as_view(), name='login_mixin'),
+    path('mylist/', listview.as_view(), name='my_list'),
     path('list/<int:id>/', detailview.as_view(), name='user_detail'),
+    path('lists/<int:pk>/', detailview.as_view(), name='user_detail'),
+    # path('product/<slug:slug>/', ProductDetailView.as_view(), name='product_detail')
+    path('createbook/', ProductCreateView.as_view(), name='create_book'),
+    path('updatebook/<int:pk>/', ProductUpdateView.as_view(), name='update_book'),
+    path('deletebook/<int:pk>/', deletebook.as_view(), name='delete_book'),
+
 ]

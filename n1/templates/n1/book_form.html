@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Product</title>
+</head>
+<body>
+
+<h1>Create Product</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+    {% comment %} {{ form }} {% endcomment %}
+
+    <button type="submit">Save</button>
+</form>
+
+</body>
+</html>
