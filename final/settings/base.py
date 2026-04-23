@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'silk',
     'n1.apps.N1Config',
     'n2.apps.N2Config',
+    'rest_framework',
 ]
 
 
@@ -211,7 +212,7 @@ CACHES = {
 # python manage.py createcachetable
 
 
-###production_code
+# production_code
 # CACHES = {
 #     "default": {
 #         "BACKEND": "django_redis.cache.RedisCache",

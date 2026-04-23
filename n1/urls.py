@@ -1,3 +1,4 @@
+from rest_framework.routers import DefaultRouter
 from django.urls import path, register_converter
 from n1.url_converter import four_int, uuids
 
@@ -7,6 +8,10 @@ register_converter(four_int, 'f')
 register_converter(uuids, 'u')
 
 app_name = "n1"
+
+router = DefaultRouter()
+router.register('user', UserViewSet, basename='na')
+
 
 urlpatterns = [
     path('a/', hello),
@@ -39,8 +44,8 @@ urlpatterns = [
     path("cached/", cached_view),
     path("test-cache/", test_cache),
     path("test-caches/", test_caches),
-    path('channel/', channel),
-    path('receive-channel/', receive_channel),
+    # path('channel/', channel),
+    # path('receive-channel/', receive_channel),
     path('cache-demo/<int:user_id>/', cache_demo, name='all cache names'),
     path('clear-cache/', clear_cache),
     path('custom-signal/', send_custom_signal),
@@ -61,5 +66,20 @@ urlpatterns = [
     path('createbook/', ProductCreateView.as_view(), name='create_book'),
     path('updatebook/<int:pk>/', ProductUpdateView.as_view(), name='update_book'),
     path('deletebook/<int:pk>/', deletebook.as_view(), name='delete_book'),
-
+    path('pagination/', pagination, name='pagination'),
+    path('pagination1/', pages.as_view(), name='pagination'),
+    path('serlizer/', serlizer, name='serlizer'),
+    path('drfapi/', DRFAPI.as_view(), name='drfapi'),
+    path('drfapi/<int:id>/', DRFAPI.as_view(), name='drfapi'),
+    path("mixins/", MyAPI.as_view()),
+    path("mixins/<int:id>/", MyAPI.as_view()),
+    path('listcreate/', listcrete.as_view(), name='listcreate'),
+    path('listonly/', listonly.as_view(), name='listonly'),
+    path('createonly/', createonly.as_view(), name='createonly'),
+    path('updateonly/<int:pk>/', updateonly.as_view(), name='updateonly'),
+    path('deleteonly/<int:pk>/', deleteonly.as_view(), name='deleteonly'),
+    path('readonly/<int:pk>/', readonly.as_view(), name='readonly'),
+    path('multiple/<int:id>/', multiple.as_view(), name='multiple'),
 ]
+
+urlpatterns += router.urls

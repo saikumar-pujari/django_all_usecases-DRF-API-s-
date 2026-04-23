@@ -1,4 +1,22 @@
 # from n1.redis_client import redis_client
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.generics import (GenericAPIView, ListAPIView, ListCreateAPIView,
+                                     RetrieveUpdateDestroyAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView)
+from rest_framework.mixins import (
+    ListModelMixin,
+    CreateModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    DestroyModelMixin
+)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .serlizer import *
+from django.core.serializers import serialize
+from sqlparse import format
+from django.db import connection
+from typing import Any
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
@@ -74,6 +92,14 @@ def a(req):
     # p = na.objects.values('name').iterator()
     # p = na.objects.values('name')[:50]
     # p = na.objects.values_list('name', flat=True)
+    print(list(connection.queries))
+    p = ((connection.queries[-1]['time']))
+    print(p)
+    print("Total queries:", len(connection.queries))
+    print("Total time:", sum(float(q['time']) for q in connection.queries))
+    q = list(connection.queries)
+    for query in q:
+        print(format(query['sql'], reindent=True, keyword_case='upper'))
     context = {
         'name': 'sai',
         'age': 22,
@@ -356,28 +382,28 @@ def send_custom_signal(request):
 #     return HttpResponse("channel layer view")
 
 
-def channel(request):
-    msg = request.GET.get("msg", "hello")
-    redis_client.publish("chat_channel", msg)
+# def channel(request):
+#     msg = request.GET.get("msg", "hello")
+#     redis_client.publish("chat_channel", msg)
 
-    return JsonResponse({
-        "status": "sent",
-        "message": msg
-    })
+#     return JsonResponse({
+#         "status": "sent",
+#         "message": msg
+#     })
 
 
-def receive_channel(request):
-    pubsub = redis_client.pubsub()
-    pubsub.subscribe("chat_channel")
+# def receive_channel(request):
+#     pubsub = redis_client.pubsub()
+#     pubsub.subscribe("chat_channel")
 
-    print("Listening to chat_channel...")
-    # dont use .listen() in production as it will block the thread, use async or separate worker for listening to channel
-    # rather use .get_message() in a loop with sleep to check for new messages without blocking the thread
-    for message in pubsub.listen():
-        if message["type"] == "message":
-            print("Received:", message["data"])
-    return JsonResponse({
-        "status": "listening"})
+#     print("Listening to chat_channel...")
+#     # dont use .listen() in production as it will block the thread, use async or separate worker for listening to channel
+#     # rather use .get_message() in a loop with sleep to check for new messages without blocking the thread
+#     for message in pubsub.listen():
+#         if message["type"] == "message":
+#             print("Received:", message["data"])
+#     return JsonResponse({
+#         "status": "listening"})
 
 
 def another_custom_signal_receiver(request):
@@ -535,7 +561,7 @@ class DashboardView(AuthMixin, View):
 @method_decorator(csrf_exempt, name='dispatch')
 class MyView(View):
     def get(self, request):
-        super().dispatch(request)
+        # super().dispatch(request)
         return HttpResponse("This is a GET request")
 
     def post(self, request):
@@ -593,14 +619,18 @@ class UserListView(ListView):
 
 
 class listview(ListView):
-    model = book
-    queryset = book.objects.all()
+    model = na
+    queryset = na.objects.all()
     template_name = 'n1/book_list.html'
-    # content_type = 'application/json'
+    content_type = 'application/json'
     context_object_name = 'users'
+    paginate_by = 1000
+    paginate_orphans = 1
+    # paginator_class = Paginator
+    # by default it gaves 5 limit
 
     def get_queryset(self):
-        return book.objects.all()
+        return na.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -610,6 +640,13 @@ class listview(ListView):
     def render_to_response(self, context, **response_kwargs):
         print("Rendering template...")
         return super().render_to_response(context, **response_kwargs)
+
+    def get_paginate_by(self, queryset):
+        try:
+            limit = int(self.request.GET.get('limit', 5))
+        except ValueError:
+            limit = 5
+        return min(limit, 1000)
 
 
 class detailview(DetailView):
@@ -683,9 +720,205 @@ class deletebook(DeleteView):
         return res
 
 
-# get_serializer()
-# get_serializer_class()
-# perform_create()
-# perform_update()
-# perform_destroy()
-#  form.instance.updated_by = self.request.user
+def pagination(req):
+    data = list(na.objects.all().values())
+    try:
+        page_number = req.GET.get('page', 1)
+    except (ValueError, TypeError):
+        page_number = 1
+    try:
+        limit = int(req.GET.get('limit', 10))
+    except (ValueError, TypeError):
+        limit = 100
+
+    limit = min(limit, 100)  # enforce max limit of 100
+
+    paginator = Paginator(data, limit, orphans=5)
+
+    page_obj = paginator.get_page(page_number)
+
+    return JsonResponse({
+        "page": page_obj.number,
+        'next': page_obj.next_page_number() if page_obj.has_next() else None,
+        'previous': page_obj.previous_page_number() if page_obj.has_previous() else None,
+        "total_pages": paginator.num_pages,
+        "len_data": len(list(page_obj)),
+        "data": list(page_obj),
+    })
+# if page_obj.has_next():
+#     next_page_url = f"?page={page_obj.next_page_number()}&limit={limit}"
+# else:
+#     next_page_url = None
+
+
+class pages(View):
+    def get(self, request):
+        queryset = na.objects.all().order_by('id').values()
+        try:
+            page_number = int(request.GET.get('page', 1))
+        except ValueError:
+            page_number = 1
+        try:
+            limit = int(request.GET.get('limit', 10))
+        except ValueError:
+            limit = 10
+        limit = min(limit, 100)
+        paginator = Paginator(queryset, limit)
+        page_obj = paginator.get_page(page_number)
+        return JsonResponse({
+            "page": page_obj.number,
+            "total_page": page_obj.paginator.num_pages,
+            "limit": limit,
+            "total_pages": paginator.num_pages,
+            "total_items": paginator.count,
+            "has_next": page_obj.has_next(),
+            "has_previous": page_obj.has_previous(),
+            "data": list(page_obj)
+        })
+
+
+def serlizer(req):
+    # data = list(na.objects.all().values()[:50])
+    serialized_data = serialize('json', na.objects.all()[:50])
+    # print(serialized_data)
+    return HttpResponse(serialized_data, content_type='application/json')
+
+
+class DRFAPI(APIView):
+    def get(self, request, id=None):
+        if id is not None:
+            queryset = na.objects.filter(id=id)
+        else:
+            queryset = na.objects.all()[:50]
+        serializer = naSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, id=None):
+        data = json.loads(request.body)
+        serializer = naSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+    def put(self, request, id):
+        data = json.loads(request.body)
+        instance = get_object_or_404(na, id=id)
+        serializer = naSerializer(instance, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, id):
+        instance = get_object_or_404(na, id=id)
+        instance.delete()
+        return Response({"message": "Deleted successfully"})
+
+
+class MyAPI(
+    GenericAPIView,
+    ListModelMixin,
+    CreateModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    DestroyModelMixin
+):
+    queryset = na.objects.all()[:100]
+    serializer_class = naSerializer
+    lookup_field = "id"
+    # obj = self.get_object() #only works with id
+
+    # def get_serializer_class(self):
+    #     if self.request.method == "GET":
+    #         return UserReadSerializer
+    #     return UserWriteSerializer
+    #  obj = self.get_object()
+    # serializer = self.get_serializer(obj) #if multiple then many=True
+    # return Response(serializer.data)
+
+    # serializer = self.get_serializer(obj, data=request.data, partial=True) #patch
+    # serializer = self.get_serializer(obj, data=request.data) #put
+
+    # GET → list OR retrieve
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get("id"):
+            return self.retrieve(request, *args, **kwargs)
+        return self.list(request, *args, **kwargs)
+
+    # POST → create
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    # PUT → full update
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    # PATCH → partial update
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    # DELETE → delete
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+# Hooks:special places where you can add your own logic during create/update/delete
+    # def perform_create(self, serializer):
+    #     serializer.save(user=self.request.user)
+
+    # def perform_update(self, serializer):
+    #     serializer.save(updated_by=self.request.user)
+
+    # def perform_destroy(self, instance):
+    #     instance.delete()
+
+
+class listcrete(ListCreateAPIView):
+    queryset = na.objects.all().order_by('-id')[:100]
+    serializer_class = naSerializer
+
+
+class listonly(ListAPIView):
+    queryset = na.objects.all().order_by('-id')[:50]
+    serializer_class = naSerializer
+
+
+class createonly(CreateAPIView):
+    queryset = na.objects.all()
+    serializer_class = naSerializer
+
+
+class updateonly(UpdateAPIView):
+    queryset = na.objects.all()
+    serializer_class = naSerializer
+
+
+class deleteonly(DestroyAPIView):
+    queryset = na.objects.all()
+    serializer_class = naSerializer
+
+
+class multiple(RetrieveUpdateDestroyAPIView):
+    queryset = na.objects.all()
+    serializer_class = naSerializer
+    lookup_field = "id"
+
+
+class readonly(RetrieveAPIView):
+    queryset = na.objects.all()
+    serializer_class = naSerializer
+
+
+class UserViewSet(ModelViewSet):
+    queryset = na.objects.all().order_by('-id')[:100]
+    # in modelviewset we should not give slice in queryset because it will be used for all operations like retrieve, update, delete etc and it will cause error if we try to retrieve or update an object that is not in the sliced queryset
+    # get_object_or_404 will not work if we give slice in queryset because it will try to get object from sliced queryset and if object is not in sliced queryset then it will return 404 error even if object exists in database(get_object_or_404(queryset, id=27531))
+    serializer_class = naSerializer
+    # def get_queryset(self):
+    #     qs = na.objects.all().order_by('-id')
+    #     if self.action == "list":
+    #         return qs[:10]
+    #     return qs
+# .actions → for custom actions
+# @action(detail=False, methods=['get'])
