@@ -11,6 +11,8 @@ app_name = "n1"
 
 router = DefaultRouter()
 router.register('user', UserViewSet, basename='na')
+router.register('views', viewset, basename='viewset')
+router.register('readyonly', readonlyviewset, basename='readonly')
 
 
 urlpatterns = [

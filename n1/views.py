@@ -1,5 +1,8 @@
 # from n1.redis_client import redis_client
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ViewSet
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import (GenericAPIView, ListAPIView, ListCreateAPIView,
                                      RetrieveUpdateDestroyAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView)
 from rest_framework.mixins import (
@@ -911,14 +914,92 @@ class readonly(RetrieveAPIView):
 
 
 class UserViewSet(ModelViewSet):
-    queryset = na.objects.all().order_by('-id')[:100]
+    # queryset = na.objects.all().order_by('-id')[:100]
+    # queryset = na.objects.all().order_by('-id')
     # in modelviewset we should not give slice in queryset because it will be used for all operations like retrieve, update, delete etc and it will cause error if we try to retrieve or update an object that is not in the sliced queryset
     # get_object_or_404 will not work if we give slice in queryset because it will try to get object from sliced queryset and if object is not in sliced queryset then it will return 404 error even if object exists in database(get_object_or_404(queryset, id=27531))
     serializer_class = naSerializer
-    # def get_queryset(self):
-    #     qs = na.objects.all().order_by('-id')
-    #     if self.action == "list":
-    #         return qs[:10]
-    #     return qs
-# .actions → for custom actions
-# @action(detail=False, methods=['get'])
+
+    def get_queryset(self):
+        qs = na.objects.all().order_by('-id')
+        print(self.action)
+        if self.action == "list":
+            return qs[:10]
+        return qs
+
+# .actions → which operation is being performed now!
+# @action(detail=False, methods=['get']),deatil means specifc id
+    def destroy(self, request, *args, **kwargs):
+        return Response({"message": "Delete is not allowed"}, status=403)
+
+    @action(detail=True, methods=['post'])
+    def deactivare(self, request, pk=None):
+        user = self.get_object()
+        user.active = False
+        user.save()
+        return Response({"message": f"User {user.id} deactivated"})
+
+    def update(self, request, *args, **kwargs):
+        raise PermissionDenied("Update not allowed")
+
+    def partial_update(self, request, *args, **kwargs):
+        raise PermissionDenied("Partial update not allowed")
+
+    def create(self, request, *args, **kwargs):
+        raise PermissionDenied("Create not allowed")
+
+    def list(self, request, *args, **kwargs):
+        raise PermissionDenied("Listing not allowed")
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     raise PermissionDenied("Listing not allowed")
+
+
+class viewset(ViewSet):
+    def list(self, req):
+        user = na.objects.all().order_by('-id')[:10]
+        serializer = naSerializer(user, many=True)
+        return Response(serializer.data)
+
+    def create(self, req):
+        serlizer = naSerializer(data=req.data)
+        if serlizer.is_valid():
+            serlizer.save()
+            return Response(serlizer.data, status=201)
+        return Response(serlizer.errors, status=400)
+
+    def retrieve(self, req, pk=None):
+        user = get_object_or_404(na, pk=pk)
+        serializer = naSerializer(user)
+        return Response(serializer.data)
+
+    def update(self, req, pk=None):
+        user = get_object_or_404(na, pk=pk)
+        serializer = naSerializer(user, data=req.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def partial_update(self, req, pk=None):
+        user = get_object_or_404(na, pk=pk)
+        serializer = naSerializer(user, data=req.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def destroy(self, req, pk=None):
+        user = get_object_or_404(na, pk=pk)
+        user.delete()
+        return Response({"message": "Deleted successfully"})
+
+
+class readonlyviewset(ReadOnlyModelViewSet):
+    serializer_class = naSerializer
+
+    def get_queryset(self):
+        qs = na.objects.all().order_by('-id')
+        if self.action == "list":
+            return qs[:10]
+        return qs
