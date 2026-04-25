@@ -97,7 +97,7 @@ class naAdmin(admin.ModelAdmin):
     list_filter = ('created', 'updated')
     search_fields = ('name',)
     ordering = ('id',)
-    list_per_page = 500
+    list_per_page = 50
 
 
 @admin.register(ba)

@@ -1,4 +1,12 @@
 # from n1.redis_client import redis_client
+from .pagination import (CustomPagination, limitpagination,CursorPagination)
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from .throttle import (loginthrottle, notloggedinthrottle)
+from rest_framework.throttling import (
+    UserRateThrottle, AnonRateThrottle, ScopedRateThrottle)
+from rest_framework.decorators import api_view
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -14,7 +22,8 @@ from rest_framework.mixins import (
 )
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serlizer import *
+from .serlizer import (naSerializer, booksSerializer,
+                       authorsSerializer, BookSerializer, userSerializer)
 from django.core.serializers import serialize
 from sqlparse import format
 from django.db import connection
@@ -41,7 +50,7 @@ from django.views.decorators.http import require_http_methods, require_GET, requ
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib.sites.models import Site
-from n1.models import (na, user, uuidmodel, usser, data, book)
+from n1.models import (na, user, uuidmodel, usser, data, book, autor)
 from n1.utils.email import send_welcome_email
 from n1.signals import custom_signal
 
@@ -169,8 +178,8 @@ def post_view(request):
 #     return HttpResponse(name)
 
 
-def api_view(request):
-    return JsonResponse({"name": "Sai"})
+# def api_view(request):
+#     return JsonResponse({"name": "Sai"})
 
 
 @csrf_exempt
@@ -927,17 +936,22 @@ class UserViewSet(ModelViewSet):
             return qs[:10]
         return qs
 
+    # def get_object(self):
+    #     return get_object_or_404(self.get_queryset(), id=self.kwargs['id'],user=self.request.user)
+
 # .actions → which operation is being performed now!
 # @action(detail=False, methods=['get']),deatil means specifc id
-    def destroy(self, request, *args, **kwargs):
-        return Response({"message": "Delete is not allowed"}, status=403)
 
     @action(detail=True, methods=['post'])
-    def deactivare(self, request, pk=None):
+    def changename(self, request, pk=None):
         user = self.get_object()
-        user.active = False
+        print(user)
+        user.name = 'lastbaba'
         user.save()
-        return Response({"message": f"User {user.id} deactivated"})
+        return Response({"message": f"User {user.id} changed the name "})
+
+    def destroy(self, request, *args, **kwargs):
+        return Response({"message": "Delete is not allowed"}, status=403)
 
     def update(self, request, *args, **kwargs):
         raise PermissionDenied("Update not allowed")
@@ -1003,3 +1017,89 @@ class readonlyviewset(ReadOnlyModelViewSet):
         if self.action == "list":
             return qs[:10]
         return qs
+
+
+@api_view(['GET'])
+def bookdaata(req):
+    # books = list(book.objects.get(id=1))
+    books = book.objects.all()
+    serlizer = booksSerializer(books, many=True)
+    # return JsonResponse(serlizer.data, safe=False)
+    return Response(serlizer.data)
+
+
+class bookhyperlink(ModelViewSet):
+    queryset = user.objects.all()
+    serializer_class = BookSerializer
+    # lookup_field = 'id'
+    # lookup_url_kwarg = 'id'
+
+
+@api_view(['GET'])
+def authorlist(req):
+    author_a = autor.objects.all()
+    serlizer = authorsSerializer(author_a, many=True)
+    return Response(serlizer.data)
+
+
+@csrf_exempt
+@api_view(['POST', 'GET'])
+def create_book(req):
+    # data = json.loads(req.body)
+    serlizer = booksSerializer(data=req.data)
+    if serlizer.is_valid():
+        serlizer.save()
+        return Response(serlizer.data, status=201)
+    return Response(serlizer.errors, status=400)
+
+
+class justcheck(APIView):
+    throttle_classes = [UserRateThrottle, AnonRateThrottle]
+
+    def get(self, request):
+        return Response({"message": "This is a throttled view"})
+
+
+class customthrottle(APIView):
+    # throttle_classes = [notloggedinthrottle, loginthrottle]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "booksthrottle"
+
+    def get(self, request):
+        return Response({"message": "This view is for custom throttle testing"})
+
+
+# class filter(ModelViewSet):
+#     queryset = user.objects.all()
+#     serializer_class = userSerializer
+#     filterset_fields = ['name', 'id']
+
+
+class filter(ModelViewSet):
+    queryset = na.objects.all().order_by('-id')
+    serializer_class = naSerializer
+    filterset_fields = ['name', 'id']
+    pagination_class = CustomPagination
+
+
+class limitpagintion(ListAPIView):
+    queryset = na.objects.all()
+    serializer_class = naSerializer
+    pagination_class = CursorPagination
+
+
+class customfilter(ModelViewSet):
+    queryset = user.objects.all()
+    serializer_class = userSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['name', 'id']
+    # filterset_fields = ['price__gt', 'price__lt', 'name__icontains','price':['gt']]
+    search_fields = ['name']
+    ordering_fields = ['id', 'name']
+# /customfilter/?ordering=name
+# /customfilter/?search=is
+# /customfilter/?name=jason
+
+
+# serializer = BookSerializer(queryset, many=True, context={'request': request}) ^^^^^^^^^^^^^^^^^^^^^^^^^
+# AttributeError: type object 'limitpagination' has no attribute 'get_extra_actions'

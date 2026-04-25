@@ -1,7 +1,6 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, register_converter
 from n1.url_converter import four_int, uuids
-
 from n1.views import *
 
 register_converter(four_int, 'f')
@@ -10,9 +9,13 @@ register_converter(uuids, 'u')
 app_name = "n1"
 
 router = DefaultRouter()
-router.register('user', UserViewSet, basename='na')
-router.register('views', viewset, basename='viewset')
+router.register('user', UserViewSet, basename='user')
+router.register('views', viewset, basename='views')
 router.register('readyonly', readonlyviewset, basename='readonly')
+router.register('hyperbaba', bookhyperlink, basename='hyperbaba')
+router.register('filter', filter, basename='filter')
+router.register('customfilter', customfilter, basename='customfilter')
+# router.register('pagination', limitpagination, basename='pagination')
 
 
 urlpatterns = [
@@ -30,7 +33,7 @@ urlpatterns = [
     path("get-name/", get_from_request),
     path("my-view/", my_view),
     path("post-view/", post_view),
-    path("api-view/", api_view),
+    # path("api-view/", api_view),
     path("all-view/", all_view),
     path("user-test/", user_test),
     path("register/", register_view),
@@ -82,6 +85,14 @@ urlpatterns = [
     path('deleteonly/<int:pk>/', deleteonly.as_view(), name='deleteonly'),
     path('readonly/<int:pk>/', readonly.as_view(), name='readonly'),
     path('multiple/<int:id>/', multiple.as_view(), name='multiple'),
+    path('bookdata/', bookdaata, name='bookdata'),
+    # path('hyperdata/', bookhyperlink.as_view(), name='bookdata'),
+    path('createbookss/', create_book, name='createbook'),
+    path('authorbookss/', authorlist, name='author_book'),
+    path('thorttle/', justcheck.as_view(), name='throttle'),
+    path('customthrottle/', customthrottle.as_view(), name='not_logged'),
+    path('limitpagination/', limitpagintion.as_view(), name='limitpagination'),
+
 ]
 
 urlpatterns += router.urls
