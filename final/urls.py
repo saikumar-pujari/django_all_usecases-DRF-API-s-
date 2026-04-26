@@ -18,6 +18,7 @@ urlpatterns = [
     path('n2/', include('n2.urls')),
     # migration is required for this
     path('silk/', include('silk.urls'), name='silk'),
+    path('auth/', include('rest_framework.urls',)),
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
 
 # uvicorn final.asgi:application --reload

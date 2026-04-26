@@ -1,4 +1,6 @@
 # from n1.redis_client import redis_client
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from .pagination import (CustomPagination, limitpagination, CursorPagination)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -1100,6 +1102,9 @@ class customfilter(ModelViewSet):
     # filterset_fields = ['price__gt', 'price__lt', 'name__icontains','price':['gt']]
     search_fields = ['name']
     ordering_fields = ['id', 'name']
+    authentication_classes = [BasicAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
 # /customfilter/?ordering=name
 # /customfilter/?search=is
 # /customfilter/?name=jason

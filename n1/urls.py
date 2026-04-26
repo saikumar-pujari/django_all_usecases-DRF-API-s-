@@ -93,8 +93,7 @@ urlpatterns = [
     path('thorttle/', justcheck.as_view(), name='throttle'),
     path('customthrottle/', customthrottle.as_view(), name='not_logged'),
     path('limitpagination/', limitpagintion.as_view(), name='limitpagination'),
-    path('auth/', include('rest_framework.urls',
-                          namespace='rest_frame_login_logout')),
+
 
 ]
 
