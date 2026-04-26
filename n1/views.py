@@ -1,5 +1,5 @@
 # from n1.redis_client import redis_client
-from .pagination import (CustomPagination, limitpagination,CursorPagination)
+from .pagination import (CustomPagination, limitpagination, CursorPagination)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -290,13 +290,17 @@ def flush_session(request):
 logger = logging.getLogger(__name__)
 
 
-# def log_test(request):
-#     logger.debug("This is a debug message")
-#     logger.info("This is an info message")
-#     logger.warning("This is a warning message")
-#     logger.error("This is an error message")
-#     logger.critical("This is a critical message")
-#     return HttpResponse("Logged some messages!")
+def log_test(request):
+    logger.debug("This is a debug message")
+    logger.info("This is an info message")
+    logger.warning("This is a warning message")
+    logger.error("This is an error message")
+    logger.critical("This is a critical message")
+    try:
+        s = 1/0
+    except Exception as e:
+        logger.error("An exception occurred: %s", e)
+    return HttpResponse("Logged some messages!")
 
 
 @cache_page(60)

@@ -1,5 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from django.urls import path, register_converter
+from django.urls import path, register_converter, include
 from n1.url_converter import four_int, uuids
 from n1.views import *
 
@@ -45,7 +45,8 @@ urlpatterns = [
     path("set-session/", set_session),
     path("get-session/", get_session),
     path("flush-session/", flush_session),
-    # path("log-test/", log_test),
+    path("log-test/", log_test),
+    path("log-tessst/", log_test),
     path("cached/", cached_view),
     path("test-cache/", test_cache),
     path("test-caches/", test_caches),
@@ -92,6 +93,8 @@ urlpatterns = [
     path('thorttle/', justcheck.as_view(), name='throttle'),
     path('customthrottle/', customthrottle.as_view(), name='not_logged'),
     path('limitpagination/', limitpagintion.as_view(), name='limitpagination'),
+    path('auth/', include('rest_framework.urls',
+                          namespace='rest_frame_login_logout')),
 
 ]
 

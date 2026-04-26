@@ -10,6 +10,7 @@ final/__pycache__/
 *$py.class
 migrations/
 *.log
+*.log.* 
 *.djcache
 *.pot
 sessionid*

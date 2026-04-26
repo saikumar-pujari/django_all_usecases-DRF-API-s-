@@ -132,30 +132,64 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 #         "level": "DEBUG",
 #     },
 # }
-# LOGGING = {
-#     "version": 1,
-#     "disable_existing_loggers": False,
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
 
-#     "handlers": {
-#         "file": {
-#             "level": "DEBUG",
-#             "class": "logging.FileHandler",
-#             "filename": "logs/error.log",
-#         },
-#         "console": {
-#             "level": "DEBUG",
-#             "class": "logging.StreamHandler",
-#         },
-#     },
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name} {message} ",
+            "style": "{",
+        },
+        "simple": {
+            "format": "[{levelname} | {name} | {message}]",
+            "style": "{",
+        },
+    },
 
-#     "loggers": {
-#         "django": {
-#             "handlers": ["file", "console"],
-#             "level": "DEBUG",
-#             "propagate": True,
-#         },
-#     },
-# }
+    "handlers": {
+        "file": {
+            # "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",  # for maxbytes and backupcount
+            # "class": "logging.FileHandler",
+            "level": "DEBUG",
+            "filename": "logs/app.log",
+            'formatter': "verbose",
+            'encoding': 'utf-8',
+            'delay': True,
+            'maxBytes': 1024*1024*5,
+            'backupCount': 5,
+        },
+        'error_file': {
+            'class': 'logging.FileHandler',
+            'level': 'ERROR',
+            'filename': 'logs/error.log',
+            'formatter': 'verbose',
+            # 'maxBytes': 1024*1024*5,
+            # 'backupCount': 5,
+            # 'delay': True,
+            # 'encoding': 'utf-8',
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "INFO",
+            'formatter': "simple",
+            'stream': 'ext://sys.stdout',
+        },
+    },
+
+    "loggers": {
+        "root": {
+            "handlers": ["file", 'error_file'],
+            "level": "DEBUG",
+        },
+        'n1': {
+            'handlers': ['console', ],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    }
+}
 
 
 # CACHES = {
