@@ -1,5 +1,7 @@
 # from n1.redis_client import redis_client
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from .permissions import isloggedin, issuperuser
+from rest_framework.permissions import (AllowAny, IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly,
+                                        DjangoModelPermissions, DjangoModelPermissionsOrAnonReadOnly, DjangoObjectPermissions)
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from .pagination import (CustomPagination, limitpagination, CursorPagination)
 from rest_framework.pagination import PageNumberPagination
@@ -1095,15 +1097,34 @@ class limitpagintion(ListAPIView):
 
 
 class customfilter(ModelViewSet):
-    queryset = user.objects.all()
+    queryset = user.objects.all().order_by('-id')
     serializer_class = userSerializer
+    # pagination_class = [CustomPagination, limitpagination,]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['name', 'id']
     # filterset_fields = ['price__gt', 'price__lt', 'name__icontains','price':['gt']]
     search_fields = ['name']
     ordering_fields = ['id', 'name']
-    authentication_classes = [BasicAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [BasicAuthentication, SessionAuthentication]
+    # permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
+    # permission_classes = [IsAdminUser]
+    permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
+    # permission_classes = [isloggedin,issuperuser]
+    # permission_classes = [DjangoObjectPermissions]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+            # return [IsAuthenticated()]
+        return [IsAdminUser()]
+
+    def filter_queryset(self, queryset):
+        if self.action == 'retrieve':
+            return queryset
+        return super().filter_queryset(queryset)
 
 # /customfilter/?ordering=name
 # /customfilter/?search=is
@@ -1112,3 +1133,54 @@ class customfilter(ModelViewSet):
 
 # serializer = BookSerializer(queryset, many=True, context={'request': request}) ^^^^^^^^^^^^^^^^^^^^^^^^^
 # AttributeError: type object 'limitpagination' has no attribute 'get_extra_actions'
+# self.check_object_permissions(request, obj)
+
+# REQUEST FLOW IN DRF:
+        # Request
+        #  ↓
+        # initialize_request()
+        #  ↓
+        # authentication
+        #  ↓
+        # get_permissions()
+        #  ↓
+        # check_permissions()-->permission.has_permission()
+        #  ↓
+        # permission.has_object_permission()
+        #  ↓
+        # get_queryset()
+        #  ↓
+        # filter_queryset()
+        #  ↓
+        # (get_object() if needed)
+        #  ↓
+        # check_object_permissions()
+        #  ↓
+        # get_serializer()
+        #  ↓
+        # get_serializer_context() #extra added into the serlizer context
+        #  ↓
+        # perform_create/update/destroy
+        #  ↓
+        # Response
+
+# check_object_permissions()
+# for permission in self.get_permissions():
+#     if not permission.has_object_permission(request, self, obj):
+#         raise PermissionDenied
+
+# get_serializer_context()
+# def get_serializer_context(self):
+#         return {
+#             "request": self.request,
+#             "extra": "DRF is cool"
+#         }
+    # class UserSerializer(serializers.ModelSerializer):
+    #     extra_info = serializers.SerializerMethodField()
+    #     def get_extra_info(self, obj):
+    #         return self.context['extra']
+# {
+#   "id": 1,
+#   "username": "Sai",
+#   "extra_info": "DRF is cool"
+# }
