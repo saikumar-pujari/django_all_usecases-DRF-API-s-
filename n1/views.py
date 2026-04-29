@@ -1094,6 +1094,8 @@ class limitpagintion(ListAPIView):
     queryset = na.objects.all()
     serializer_class = naSerializer
     pagination_class = CursorPagination
+    # authentication_classes = [BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
 
 
 class customfilter(ModelViewSet):
@@ -1105,71 +1107,72 @@ class customfilter(ModelViewSet):
     # filterset_fields = ['price__gt', 'price__lt', 'name__icontains','price':['gt']]
     search_fields = ['name']
     ordering_fields = ['id', 'name']
-    # authentication_classes = [BasicAuthentication, SessionAuthentication]
+    authentication_classes = [BasicAuthentication, SessionAuthentication]
     # permission_classes = [AllowAny]
     # permission_classes = [IsAuthenticatedOrReadOnly]
-    # permission_classes = [IsAdminUser]
-    permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
+    permission_classes = [IsAuthenticated]
+    # permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
     # permission_classes = [isloggedin,issuperuser]
     # permission_classes = [DjangoObjectPermissions]
 
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [AllowAny()]
-        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAdminUser()]
-            # return [IsAuthenticated()]
-        return [IsAdminUser()]
+    # def get_permissions(self):
+    #     if self.action in ['list', 'retrieve']:
+    #         return [AllowAny()]
+    #     elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+    #         return [IsAdminUser()]
+    #         # return [IsAuthenticated()]
+    #     return [IsAdminUser()]
 
-    def filter_queryset(self, queryset):
-        if self.action == 'retrieve':
-            return queryset
-        return super().filter_queryset(queryset)
+    # def filter_queryset(self, queryset):
+    #     if self.action == 'retrieve':
+    #         return queryset
+    #     return super().filter_queryset(queryset)
 
 # /customfilter/?ordering=name
 # /customfilter/?search=is
 # /customfilter/?name=jason
 
 
-# serializer = BookSerializer(queryset, many=True, context={'request': request}) ^^^^^^^^^^^^^^^^^^^^^^^^^
-# AttributeError: type object 'limitpagination' has no attribute 'get_extra_actions'
-# self.check_object_permissions(request, obj)
-
 # REQUEST FLOW IN DRF:
-        # Request
-        #  ↓
-        # initialize_request()
-        #  ↓
-        # authentication
-        #  ↓
-        # get_permissions()
-        #  ↓
-        # check_permissions()-->permission.has_permission()
-        #  ↓
-        # permission.has_object_permission()
-        #  ↓
-        # get_queryset()
-        #  ↓
-        # filter_queryset()
-        #  ↓
-        # (get_object() if needed)
-        #  ↓
-        # check_object_permissions()
-        #  ↓
-        # get_serializer()
-        #  ↓
-        # get_serializer_context() #extra added into the serlizer context
-        #  ↓
-        # perform_create/update/destroy
-        #  ↓
-        # Response
+    # Request
+    #  ↓
+    # initialize_request()
+    #  ↓
+    # authentication
+    #  ↓
+    # get_permissions()
+    #  ↓
+    # check_permissions()-->permission.has_permission()
+    #  ↓
+    # permission.has_object_permission()
+    #  ↓
+    # get_queryset()
+    #  ↓
+    # filter_queryset()
+    #  ↓
+    # (get_object() if needed)
+    #  ↓
+    # check_object_permissions()
+    #  ↓
+    # get_serializer()
+    #  ↓
+    # get_serializer_context() #extra added into the serlizer context
+    #  ↓
+    # perform_create/update/destroy
+    #  ↓
+    # Response
 
 # check_object_permissions()
+# self.check_object_permissions(request, obj)
 # for permission in self.get_permissions():
 #     if not permission.has_object_permission(request, self, obj):
 #         raise PermissionDenied
 
+
+# only need in apiview else modelviewset and genericapiview does it internally man!
+# serializer = BookSerializer(queryset, many=True, context={'request': request})
 # get_serializer_context()
+#only in modelviewset and genericapiview
 # def get_serializer_context(self):
 #         return {
 #             "request": self.request,
