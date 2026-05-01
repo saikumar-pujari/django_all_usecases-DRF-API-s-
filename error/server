@@ -1,6 +1,9 @@
 #####IMPORTANT: for better problem identifer i use runserver_plus(django_extensions) instead of runserver
 
+#note: Always check the type of error you are encountering and try to understand the root cause of the error before trying to fix it. This will help you to find the most appropriate solution for the problem and avoid making unnecessary changes to your code or settings. Additionally, always make sure to test your changes in a development environment before deploying them to production to ensure that they do not cause any unintended consequences or issues with your application.
+
 problem:Response to request with pk 5276178c-dfaa-4d3a-965e-6b47971fa174 has content type text/javascript but was unable to parse it
+
 problem:text/javascript or JSON Parse Error(404(mostly) error in each request of the server)
 
 sol:python manage.py makemigrations,python manage.py migrate

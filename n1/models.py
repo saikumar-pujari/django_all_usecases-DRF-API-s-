@@ -1,3 +1,5 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 import uuid
 from django.db import models
 from django.db.models import Q, F
@@ -272,6 +274,7 @@ class images(models.Model):
 # models.objects.filter(name__icontains="john")
 # models.objects.filter(book__title="Book Title")
 # models.objects.with_author() #manager method
+# model.objects.realted_name.all() #related name of foreign key and one to one also for reverse relation of many to many(if relatedn_name is not given then it will be modelname_set.all())
 # models.objects.first()
 # models.objects.last()
 # models.objects.filter(id__in=[1,2,3])
@@ -280,9 +283,47 @@ class images(models.Model):
 # models.objects.prefetch_related('author') #manytomany
 
 
+def name_should_have_styles(value):
+    if 'styles' not in value:
+        raise ValidationError(
+            _('Name must contain the word "styles".'),
+            params={'value': value},
+        )
+
+
 class test(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, validators=[
+                            name_should_have_styles])
     city = models.CharField(max_length=30)
 
     def __str__(self):
         return self.name
+
+
+class restruart(models.Model):
+    name = models.CharField(max_length=30)
+    city = models.CharField(max_length=30)
+    website = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    # def save(self, *args, **kwargs):
+    #     # True if the object is being created, False if it is being updated
+    #     print(self._state.adding)
+    #     super().save(*args, **kwargs)
+
+
+class rating(models.Model):
+    restaurant = models.ForeignKey(
+        restruart, on_delete=models.CASCADE, related_name='ratings')
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+
+    def __str__(self):
+        return f"{self.restaurant.name} - {self.rating}"
+
+#mutiple update
+# restuart=restruart.objects.all()
+# restruart.update(city="New City")

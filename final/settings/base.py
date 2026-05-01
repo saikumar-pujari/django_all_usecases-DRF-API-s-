@@ -23,10 +23,12 @@ INSTALLED_APPS = [
     'n2.apps.N2Config',
     'rest_framework',
     'django_filters',
+    'corsheaders',
 ]
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'silk.middleware.SilkyMiddleware',
     # 'django.middleware.cache.UpdateCacheMiddleware', #onlywith DB cache
     'django.middleware.security.SecurityMiddleware',
@@ -41,7 +43,17 @@ MIDDLEWARE = [
     # 'django.middleware.cache.FetchFromCacheMiddleware', #onlywith DB cache
 ]
 
-# APPEND_SLASH = True
+APPEND_SLASH = True
+# CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    # "http://localhost:3000",
+    # 'https://example.com',
+]
+CORS_ALLOWED_ORIGINS_REGEX = [
+    # r"^https://\w+\.example\.com$",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'final.urls'
 

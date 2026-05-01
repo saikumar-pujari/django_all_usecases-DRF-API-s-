@@ -11,6 +11,11 @@ cd /d %BASE%\final
 REM Activate virtual environment (you used "env")
 call %BASE%\env\Scripts\activate
 
+
+echo Current directory: %CD%
+echo VENV PATH:
+echo %VIRTUAL_ENV%
+
 REM Run server
 python manage.py rs
 
