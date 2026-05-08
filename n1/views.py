@@ -1,4 +1,8 @@
+# user.has_perm('n1.view_na')
+# user.groups.filter(name='groupname').exists()
+
 # from n1.redis_client import redis_client
+from rest_framework.authentication import TokenAuthentication
 from .permissions import isloggedin, issuperuser
 from rest_framework.permissions import (AllowAny, IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly,
                                         DjangoModelPermissions, DjangoModelPermissionsOrAnonReadOnly, DjangoObjectPermissions)
@@ -276,6 +280,14 @@ def get_cookie(req):
 def set_session(request):
     request.session['username'] = 'skippersession'
     request.session.set_expiry(0)
+    # use this for the remeber me functionality, it will expire the session when the browser is closed
+    # request.session.set_expiry(300) #expire after 5 minutes
+    # if 'remeber_me':
+    #     request.session.set_expiry(1209600)
+    # else:
+    #     request.session.set_expiry(0)
+
+    # request.session.modified = True #tell to update the DB!!
     return HttpResponse("Session set")
 
 
@@ -530,9 +542,9 @@ def names(req):
     d = data.objects.get(id=1)
     json_string = '{"name": "Alice", "age": 30, "is_student": false}'
     datas = json.loads(json_string)
-    p = datas.get("fields", [])
+    p = datas.get("name", [])
     print(p)
-    return HttpResponse(d.name)
+    return HttpResponse(p)
 
 
 # Request → as_view() → dispatch() → get()/post()
@@ -1172,7 +1184,7 @@ class customfilter(ModelViewSet):
 # only need in apiview else modelviewset and genericapiview does it internally man!
 # serializer = BookSerializer(queryset, many=True, context={'request': request})
 # get_serializer_context()
-#only in modelviewset and genericapiview
+# only in modelviewset and genericapiview
 # def get_serializer_context(self):
 #         return {
 #             "request": self.request,
@@ -1187,3 +1199,46 @@ class customfilter(ModelViewSet):
 #   "username": "Sai",
 #   "extra_info": "DRF is cool"
 # }
+
+
+class tokentest(ModelViewSet):
+    queryset = user.objects.all()
+    serializer_class = userSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response({"message": f"Hello {request.user.username}, your token is valid!"})
+
+
+# @permission_required('n1.view_na', raise_exception=True)
+# def testthepermissiom(request):
+#     try:
+#         if request.user.has_perm('n1.view_na'):
+#             return HttpResponse("You have permission to view na")
+#         else:
+#             return HttpResponse("You do not have permission to view na")
+
+#     finally:
+#         if request.user.has_perm('view_na'):
+#             # return HttpResponse("You have permission to view na")
+#             print("You have permission to view na")
+#         else:
+#             # return HttpResponse("You do not have permission to view na")
+#             print("You do not have permission to view na")
+#             # return HttpResponse("You do not have permission to view na")
+
+
+def testthepermissiom(request):
+    request.session['test'] = 'testing permission'
+    request.session['test1'] = 'testing permission1 '
+    print(request.session.get('test'))
+    return HttpResponse("Permission test completed, check console for details")
+
+import niquests
+async def test_this_view(req):
+    async with niquests.AsyncClient() as client:
+        response = await client.get('https://jsonplaceholder.typicode.com/todos/1')
+        data = response.json()
+        print(data)
+    return HttpResponse("Async request completed, check console for response data")

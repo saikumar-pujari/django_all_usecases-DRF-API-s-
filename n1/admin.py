@@ -10,6 +10,7 @@ from django.http.response import HttpResponse
 from .models import *
 
 admin.site.register(data)
+admin.site.register(docu)
 
 
 @admin.register(usser)
@@ -203,13 +204,14 @@ another = anotheradmin(name='anotheradmin')
 # another.register(post, postAdmin)
 # another.register(model.post)
 
-models = django.apps.apps.get_models()
-# print(models)
-for model in models:
-    try:
-        admin.site.register(model)
-    except admin.sites.AlreadyRegistered:
-        pass
+# models = django.apps.apps.get_models()
+# # print(models)
+# for model in models:
+#     try:
+#         admin.site.register(model)
+#     except admin.sites.AlreadyRegistered:
+#         pass
+
 # admin.site.unregister(django.contrib.auth.models.Group)
 # admin.site.unregister(django.contrib.auth.models.User)
 # admin.site.unregister(django.contrib.sessions.models.Session)
@@ -236,3 +238,13 @@ for model in models:
 #         if not request.user.is_superuser:
 #             return ['status']
 #         return []
+
+
+@admin.register(comments)
+class commentsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'text', 'content_object')
+
+
+@admin.register(tasking)
+class taskingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'created_at', 'status')

@@ -2,6 +2,7 @@ from rest_framework.routers import DefaultRouter
 from django.urls import path, register_converter, include
 from n1.url_converter import four_int, uuids
 from n1.views import *
+from rest_framework.authtoken.views import obtain_auth_token
 
 register_converter(four_int, 'f')
 register_converter(uuids, 'u')
@@ -15,6 +16,7 @@ router.register('readyonly', readonlyviewset, basename='readonly')
 router.register('hyperbaba', bookhyperlink, basename='hyperbaba')
 router.register('filter', filter, basename='filter')
 router.register('customfilter', customfilter, basename='customfilter')
+router.register('tokentest', tokentest, basename='tokentest')
 # router.register('pagination', limitpagination, basename='pagination')
 
 
@@ -93,6 +95,8 @@ urlpatterns = [
     path('thorttle/', justcheck.as_view(), name='throttle'),
     path('customthrottle/', customthrottle.as_view(), name='not_logged'),
     path('limitpagination/', limitpagintion.as_view(), name='limitpagination'),
+    path('api/token/', obtain_auth_token),
+    path('test-permission/', testthepermissiom, name='test_permission'),
 
 
 ]

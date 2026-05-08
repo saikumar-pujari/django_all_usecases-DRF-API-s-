@@ -1,0 +1,15 @@
+GET http://127.0.0.1:8000/n1/1/ HTTP/1.1
+Authorization: Token 1234567890abcdef1234567890abcdef12345678
+Content-Type: application/json
+
+
+
+####
+GET http://127.0.0.1:8000/n1/log-test/ HTTP/1.1
+Content-Type: application/json
+#only when token is required or authorization is needed
+# {
+#     'username': 'test',
+#     'password': 'test'
+# }
+

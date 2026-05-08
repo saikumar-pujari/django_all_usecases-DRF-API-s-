@@ -1,9 +1,13 @@
+import magic
+from django.core.validators import FileExtensionValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 import uuid
 from django.db import models
 from django.db.models import Q, F
 from django.utils.translation import gettext_lazy as _
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 
 
 class data(models.Model):
@@ -265,6 +269,7 @@ class images(models.Model):
 # models.objects.all().distinct()
 # models.objects.order_by('name')
 # models.objects.values()
+# models.objects.values_list(flat=True)
 # models.objects.count()
 # models.objects.only('name')
 # models.objects.defer('name')
@@ -281,7 +286,10 @@ class images(models.Model):
 # models.objects.filter(created__in__gte=datetime(2023,1,1))
 # models.objects.select_related('author') #onetoine and foreign key
 # models.objects.prefetch_related('author') #manytomany
-
+# models.objects.select_for_update().get() # for locking the row in database for update and it will be released after the transaction is completed
+#models.objects.raw('SELECT * FROM table_name') # for raw sql queries
+#mdels.objects.bulk_create([model(name="John Salas"), model(name="Jane Doe")]) # for bulk create
+#models.objects.bulk_update([model(name="John Salas", id=1), model(name="Jane Doe", id=2)], ['name']) # for bulk update
 
 def name_should_have_styles(value):
     if 'styles' not in value:
@@ -324,6 +332,155 @@ class rating(models.Model):
     def __str__(self):
         return f"{self.restaurant.name} - {self.rating}"
 
-#mutiple update
+# mutiple update
 # restuart=restruart.objects.all()
 # restruart.update(city="New City")
+
+
+class stock(models.Model):
+    name = models.CharField(max_length=30)
+    stock = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(1000)])
+    comments = GenericRelation('comments', related_query_name='stocks')
+    # class Meta:
+    #     constraints = [
+    #         # model.checkConstraint(check=Q(stock__gte=0) & Q(stock__lte=1000), name='stock_range')
+    #         constraints=models.CheckConstraint(name='stock_range',check=Q(stock__gte=0) & Q(stock__lte=1000))
+    #     ]
+
+    def __str__(self):
+        return f"{self.name}- {self.stock}"
+
+
+class online(models.Model):
+    stock = models.ForeignKey(
+        stock, on_delete=models.CASCADE, related_name='online')
+    no_of_item = models.PositiveSmallIntegerField()
+    comments = GenericRelation('comments', related_query_name='online')
+
+    def __str__(self):
+        return f"{self.stock.name} - {self.no_of_item}"
+
+
+class comments(models.Model):
+    text = models.CharField(max_length=30)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE,
+                                     limit_choices_to={
+                                         'app_label': 'n1',
+                                         #  'model': ['restruart', 'stock', 'rating', 'online']
+                                     }
+                                     )
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def clean(self):
+        # model_class convert content type to model class products | n1 -> n1
+        model_class = self.content_type.model_class()
+        if not model_class.objects.filter(id=self.object_id).exists():
+            raise ValidationError("This object_id does not exist!")
+
+    def __str__(self):
+        return self.text
+# we can direclty get resturaty.objects.get(id=2) also if needed in content_object
+# TabularInline in admin_panel(to add more relation between some models takes model and extra)
+# stackedinline
+
+
+class tasking(models.Model):
+    name = models.CharField(max_length=30)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        choices=[('pending', 'Pending'), ('completed', 'Completed')], default='pending')
+    objects = models.Manager()
+
+    class taskingmanager(models.Manager):
+        def pending(self):
+            return self.filter(status='pending')
+
+        def completed(self):
+            return self.filter(status='completed')
+    tasks = taskingmanager()
+
+    @property
+    def is_completed(self) -> bool:
+        return self.status == 'completed'
+
+    @property
+    def is_pending(self):
+        return self.status == 'pending'
+
+    # model_method
+    # GeneratedField
+
+    def __str__(self):
+        return self.name
+
+
+class pendingtasking(tasking):
+    class Meta:
+        proxy = True
+        ordering = ['created_at']
+
+    class value(models.Manager):
+        def get_queryset(self) -> models.QuerySet:
+            return super().get_queryset().filter(status='pending')
+    objects = value()
+
+    def save(self, *args, **kwargs):
+        self.status = 'pending'
+        super().save(*args, **kwargs)
+
+    # def delete(self, *args, **kwargs):
+    #     self.status = 'completed'
+        # self.images.delete() #when you also wanr to delete the file when object is deletd in the image then super().delete(*args, **kwargs)
+    #     super().save(*args, **kwargs)
+
+
+class completedtasking(tasking):
+    class Meta:
+        proxy = True
+        ordering = ['created_at']
+
+    class completed(models.Manager):
+        def get_queryset(self) -> models.QuerySet:
+            return super().get_queryset().filter(status='completed')
+    objects = completed()
+
+    def save(self, *args, **kwargs):
+        self.status = 'completed'
+        super().save(*args, **kwargs)
+
+
+# django.guardian
+# it gives the object level permissions to the users and we can also assign the permissions to the users and groups and we can also check the permissions of the users and groups and we can also get the objects for which the user has the permission and we can also get the users who have the permission for a object and we can also get the groups who have the permission for a object
+# like even thou you have many repo but you only want them to give permission to read some certain repos only!! for each user!
+# from guardian.shortcuts import assign_perm, get_perms, get_objects_for_user, get_users_with_perms, get_groups_with_perms
+# assign_perm('view_repo', user, repo) # to assign permission to a user for a repo
+# assign_perm('view_repo', group, repo) # to assign permission to a group for a repo
+# get_objects_for_user(user, 'view_repo') # to get the objects for which the user has the permission
+# get_perms(user, repo) # to get the permissions of a user for a repo
+# @permission_required( 'blog.delete_post',(Post, 'id', 'pk'))
+# here post.id is post id number and pk is which user req(id)
+
+
+# when uploading file or images use python-magic to read some content and validate the file type and also use validators in the model to validate the file type and also use clean method to validate the file type and also use signals to delete the file when the object is deleted and also use pre_save signal to delete the old file when the file is updated and also use post_save signal to delete the old file when the file is updated and also use post_delete signal to delete the file when the object is deleted
+
+
+
+def check_file_type(file):
+    file_type = magic.from_buffer(file.read(1024), mime=True,)
+    print(file_type)
+    if file_type not in ['image/jpeg', 'image/png', 'application/pdf']:
+        raise ValidationError("Unsupported file type!")
+
+file_type = FileExtensionValidator(['jpg', 'jpeg', 'png', 'pdf'])
+
+class docu(models.Model):
+    name = models.CharField(max_length=50)
+    images = models.ImageField(
+        blank=True, upload_to='images/', validators=[file_type, check_file_type])
+    docu = models.FileField(
+        blank=True, upload_to='documents/', validators=[file_type, check_file_type])
+
+    def __str__(self):
+        return self.name
