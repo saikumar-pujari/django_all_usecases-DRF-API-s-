@@ -97,6 +97,7 @@ urlpatterns = [
     path('limitpagination/', limitpagintion.as_view(), name='limitpagination'),
     path('api/token/', obtain_auth_token),
     path('test-permission/', testthepermissiom, name='test_permission'),
+    path('onlyserlizer/', onlyserialize, name='onlyserlizer'),
 
 
 ]

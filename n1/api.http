@@ -13,3 +13,31 @@ Content-Type: application/json
 #     'password': 'test'
 # }
 
+###
+POST http://127.0.0.1:8000/api/token/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "username":"saikumar",
+    "password":"saikumar"
+}
+
+###
+POST http://127.0.0.1:8000/api/token/refresh/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3ODkyMTQwNiwiaWF0IjoxNzc4MzE2NjA2LCJqdGkiOiI5N2Y1N2FkODcxNGI0NWJmODQ5MTFlMjI1ODhiOTAwYiIsInVzZXJfaWQiOiIxIn0.yeoSS2i1-LeE06djshL6rpo62CeRVyPaF3TGZf510tI"
+}
+
+
+###
+# GET http://127.0.0.1:8000/n1/customfilter/?name=Emily HTTP/1.1
+# GET http://127.0.0.1:8000/n1/customfilter/?search=as HTTP/1.1
+GET http://127.0.0.1:8000/n1/customfilter/?name=st HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc4MzE3NTA2LCJpYXQiOjE3NzgzMTY2MDYsImp0aSI6ImI0YzFhMDAzMmE1MDRkNmI4ZmZmZGJhOWY1MDMwOWM3IiwidXNlcl9pZCI6IjEifQ.9Y454Xdsy1HB_Z6lKAsGh-P-Jijxheww_g41sybcJAM
+
+###
+GET http://127.0.0.1:8000/n1/filter/?page=3 HTTP/1.1
+Content-Type: application/json

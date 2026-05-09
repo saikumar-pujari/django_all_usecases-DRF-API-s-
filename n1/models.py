@@ -484,3 +484,7 @@ class docu(models.Model):
 
     def __str__(self):
         return self.name
+
+#IMPORTANT: for the remeber me model we can just go with the AUTHENTICATIONFORM diectly and we dont need to create a custom form for it as it already has the remember me field in it and we can just use it in our login view and template and also we can use the built in login view of django and just pass the authentication form to it and also we can use the built in logout view of django and just redirect to the login page after logout and also we can use the built in password reset view of django and just pass the email template to it and also we can use the built in password reset confirm view of django and just pass the template to it and also we can use the built in password reset complete view of django and just pass the template to it
+
+

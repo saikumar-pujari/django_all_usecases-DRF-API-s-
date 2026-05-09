@@ -2,6 +2,9 @@
 # user.groups.filter(name='groupname').exists()
 
 # from n1.redis_client import redis_client
+from n1.filter import productfilter
+from rest_framework_simplejwt.authentication import JWTAuthentication
+import niquests
 from rest_framework.authentication import TokenAuthentication
 from .permissions import isloggedin, issuperuser
 from rest_framework.permissions import (AllowAny, IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly,
@@ -31,7 +34,7 @@ from rest_framework.mixins import (
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serlizer import (naSerializer, booksSerializer,
-                       authorsSerializer, BookSerializer, userSerializer)
+                       authorsSerializer, BookSerializer, userSerializer, productSerializer)
 from django.core.serializers import serialize
 from sqlparse import format
 from django.db import connection
@@ -546,8 +549,10 @@ def names(req):
     print(p)
     return HttpResponse(p)
 
-
+# -----------------------------------------------------------------------------------------------------------------------------------------
 # Request → as_view() → dispatch() → get()/post()
+
+
 class dispatch(View):
     def dispatch(self, request, *args, **kwargs):
         print("Before dispatch")
@@ -874,6 +879,15 @@ class MyAPI(
 
     # GET → list OR retrieve
 
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+
     def get(self, request, *args, **kwargs):
         if kwargs.get("id"):
             return self.retrieve(request, *args, **kwargs)
@@ -1100,6 +1114,10 @@ class filter(ModelViewSet):
     serializer_class = naSerializer
     filterset_fields = ['name', 'id']
     pagination_class = CustomPagination
+    pagination_page_size = 5
+    page_size_query_param = 'limit'
+    pagination_page_query_param = 'page'
+    max_page_size = 10
 
 
 class limitpagintion(ListAPIView):
@@ -1115,14 +1133,20 @@ class customfilter(ModelViewSet):
     serializer_class = userSerializer
     # pagination_class = [CustomPagination, limitpagination,]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['name', 'id']
+    # custom filter backend in filters.py
+    # filter_class=productfilter
+
+    filterset_fields = ['=name', 'id']
+    # filterset_fields = ['=name', 'id']
     # filterset_fields = ['price__gt', 'price__lt', 'name__icontains','price':['gt']]
     search_fields = ['name']
     ordering_fields = ['id', 'name']
-    authentication_classes = [BasicAuthentication, SessionAuthentication]
+    # authentication_classes = [BasicAuthentication, SessionAuthentication]
+    authentication_classes = [JWTAuthentication]
     # permission_classes = [AllowAny]
     # permission_classes = [IsAuthenticatedOrReadOnly]
     permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAdminUser]
     # permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
     # permission_classes = [isloggedin,issuperuser]
     # permission_classes = [DjangoObjectPermissions]
@@ -1235,10 +1259,22 @@ def testthepermissiom(request):
     print(request.session.get('test'))
     return HttpResponse("Permission test completed, check console for details")
 
-import niquests
+
 async def test_this_view(req):
     async with niquests.AsyncClient() as client:
         response = await client.get('https://jsonplaceholder.typicode.com/todos/1')
         data = response.json()
         print(data)
     return HttpResponse("Async request completed, check console for response data")
+
+
+@api_view(['GET'])
+def onlyserialize(req):
+    users = book.objects.all()
+    serializer = productSerializer({
+        'user': users,
+        'name': users[0].name,
+        'price': 100,
+        'quantity': 5
+    })
+    return Response(serializer.data)

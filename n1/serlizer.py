@@ -77,3 +77,14 @@ class userSerializer(serializers.ModelSerializer):
     class Meta:
         model = user
         fields = '__all__'
+
+# total=serializers.MethodSerializer(method_name='get_total')
+# def get_total(self, obj):
+#     return obj.price * obj.quantity
+
+
+class productSerializer(serializers.Serializer):
+    user = booksSerializer(many=True)
+    name = serializers.CharField(max_length=100)
+    price = serializers.FloatField()
+    quantity = serializers.IntegerField()
