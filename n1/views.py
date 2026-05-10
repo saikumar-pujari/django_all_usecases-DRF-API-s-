@@ -1,5 +1,7 @@
 # user.has_perm('n1.view_na')
 # user.groups.filter(name='groupname').exists()
+# @vary_on_headers("Authorization")
+# cache delete in signals on post_save or post_delete of the model to keep the cache updated
 
 # from n1.redis_client import redis_client
 from n1.filter import productfilter
@@ -973,8 +975,12 @@ class UserViewSet(ModelViewSet):
     # def get_object(self):
     #     return get_object_or_404(self.get_queryset(), id=self.kwargs['id'],user=self.request.user)
 
+
+# this @action decorator is used to add custom actions to the viewset, it will automatically route the request to the appropriate method based on the HTTP method and URL pattern. It also provides extra features like pagination, filtering, ordering etc. which can be easily implemented by adding some attributes to the viewset class.
+# na man to add extra info or some conditions to the modelviewset!
 # .actions → which operation is being performed now!
 # @action(detail=False, methods=['get']),deatil means specifc id
+
 
     @action(detail=True, methods=['post'])
     def changename(self, request, pk=None):
@@ -1002,6 +1008,8 @@ class UserViewSet(ModelViewSet):
     # def retrieve(self, request, *args, **kwargs):
     #     raise PermissionDenied("Listing not allowed")
 
+
+# Viewset has only list, create, retrieve, update, partial_update, destroy methods and it will automatically route the request to the appropriate method based on the HTTP method and URL pattern. It also provides extra features like pagination, filtering, ordering etc. which can be easily implemented by adding some attributes to the viewset class.
 
 class viewset(ViewSet):
     def list(self, req):

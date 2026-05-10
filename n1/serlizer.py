@@ -58,6 +58,9 @@ class booksSerializer(serializers.ModelSerializer):
         print(author, created)
         book_obj = book.objects.create(author=author, **validated_data)
         return book_obj
+        # validated_data['name']=validated_data['name'].upper()
+        # student = super().create(validated_data)
+        # return super().create(validated_data)
 
 
 class BookSerializer(serializers.HyperlinkedModelSerializer):

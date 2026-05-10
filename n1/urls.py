@@ -10,8 +10,8 @@ register_converter(uuids, 'u')
 app_name = "n1"
 
 router = DefaultRouter()
-router.register('user', UserViewSet, basename='user')
-router.register('views', viewset, basename='views')
+router.register('restrictedviewset', UserViewSet, basename='user')
+router.register('viewset', viewset, basename='views')
 router.register('readyonly', readonlyviewset, basename='readonly')
 router.register('hyperbaba', bookhyperlink, basename='hyperbaba')
 router.register('filter', filter, basename='filter')
