@@ -68,7 +68,19 @@ from n1.utils.email import send_welcome_email
 from n1.signals import custom_signal
 
 
+def session(req):
+    print(req.session.session_key)
+    req.session['name'] = 'skipper'
+    print(req.session.session_key)
+    print(req.session.get('name'))
+    # req.session.flush()
+    # req.session.set_expiry(10)  # expire after 10 seconds
+    req.session.pop('name', None)
+    return HttpResponse("Session created")
+
+
 def hello(request):
+    print(request.session.get('name'))
     print(f"Request IP: {request.META.get('REMOTE_ADDR')}")
     # print(request.META)
     print(f"View Name: {request.resolver_match.view_name}")
@@ -980,7 +992,6 @@ class UserViewSet(ModelViewSet):
 # na man to add extra info or some conditions to the modelviewset!
 # .actions → which operation is being performed now!
 # @action(detail=False, methods=['get']),deatil means specifc id
-
 
     @action(detail=True, methods=['post'])
     def changename(self, request, pk=None):

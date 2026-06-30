@@ -21,6 +21,7 @@ router.register('tokentest', tokentest, basename='tokentest')
 
 
 urlpatterns = [
+    path('session/', session),
     path('a/', hello),
     path('data/', names),
     path('skipper/', hello),

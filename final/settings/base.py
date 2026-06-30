@@ -120,7 +120,12 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_FILE_PATH = BASE_DIR / 'sessions'
 SESSION_COOKIE_AGE = 60*60*24*7
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SECURE_COOKIE = False  # only https
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
+# to view data from session use sessionstore and load it
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -167,7 +172,7 @@ LOGGING = {
             # "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",  # for maxbytes and backupcount
             # "class": "logging.FileHandler",
-            "level": "DEBUG",
+            "level": "INFO",
             "filename": "logs/app.log",
             'formatter': "verbose",
             'encoding': 'utf-8',
@@ -196,7 +201,7 @@ LOGGING = {
     "loggers": {
         "root": {
             "handlers": ["file", 'error_file'],
-            "level": "DEBUG",
+            "level": "INFO",
         },
         'n1': {
             'handlers': ['console', ],
@@ -218,17 +223,11 @@ LOGGING = {
 #         }
 #     }
 # }
+
 # CACHES = {
 #     "default": {
 #         "BACKEND": "django_redis.cache.RedisCache",
 #         "LOCATION": "redis://mymaster/0",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.SentinelClient",
-#             "SENTINELS": [
-#                 ("127.0.0.1", 26379),
-#             ],
-#         },
-#        #for multiple sentinels only
 #        # "OPTIONS": {
 #        #     "CLIENT_CLASS": "django_redis.client.SentinelClient",
 #        #     "SENTINELS": [
@@ -240,6 +239,7 @@ LOGGING = {
 #        # },
 #     }
 # }
+
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
@@ -250,11 +250,13 @@ LOGGING = {
 #         }
 #     }
 # }
+
 # CACHES = {
 #     "default": {
 #         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
 #     }
 # }
+
 # CACHES = {#using database for caching
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
@@ -334,6 +336,6 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "ALGORITHM": "HS256",
     "AUTH_HEADER_TYPES": ("Bearer",),
-    # "singing_key": "your-secret-key", 
+    # "singing_key": "your-secret-key",
 
 }

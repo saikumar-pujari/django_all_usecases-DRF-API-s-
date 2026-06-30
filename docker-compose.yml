@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+
+  redis-master:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  redis-replica:
+    image: redis
+    command: redis-server --replicaof redis-master 6379
+    ports:
+      - "6380:6379"
+
+  sentinel1:
+    image: redis
+    command: >
+      redis-sentinel /etc/sentinel.conf
+    volumes:
+      - ./sentinel.conf:/etc/sentinel.conf
+    ports:
+      - "26379:26379"
+
+  sentinel2:
+    image: redis
+    command: >
+      redis-sentinel /etc/sentinel.conf
+    volumes:
+      - ./sentinel.conf:/etc/sentinel.conf
+    ports:
+      - "26380:26379"
+
+  sentinel3:
+    image: redis
+    command: >
+      redis-sentinel /etc/sentinel.conf
+    volumes:
+      - ./sentinel.conf:/etc/sentinel.conf
+    ports:
+      - "26381:26379"

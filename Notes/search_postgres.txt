@@ -1,0 +1,221 @@
+use elepahntsql
+only need is user,password,host if online!
+in installed apps add django.contrib.postgres
+psycopg2:help us in 
+before it install psycopg2 or  psycopg2-binary
+migrate
+q=request.GET.get('q')
+django.objects.filter(title__search=q)
+
+to use postgresql
+from django.contrib.postgres.search import SearchVector,searchQuery,SearchRank,searchheadline,searchVectorField
+vector=SearchVector('title','content')
+q=request.GET.get('q')
+query=SearchQuery(q)
+search_headline=SearchHeadline('title','content',query)
+videos=Video.objects.annotate(rank=SearchRank(vector,query)).filter(rank__gte=0.3).order_by('-rank')
+videos=Video.objects.annotate(rank=SearchRank(vector,query)).annotate(search_headline=search_headline).filter(rank__gte=0.3).order_by('-rank')
+videos=Video.objects.annotate(search=vector).filter(search=query).order_by('-rank')
+{{video.rank}}
+{{video.search_headline|safe}}
+{{video.search_headline|safe|truncatewords:30}}
+
+
+//----searchvectorfield
+from django.contrib.postgres.search import SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
+class Blog(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+
+    search_vector = SearchVectorField(null=True)
+    class Meta:
+        indexes = [
+            GinIndex(fields=["search_vector"]),
+        ]
+
+
+from django.contrib.postgres.search import SearchVector
+Blog.objects.update(
+    search_vector=SearchVector("title", "content")
+)
+//if we use weights then we can give more importance to one field over the other
+Blog.objects.update(
+    search_vector=
+        SearchVector("title", weight="A") +
+        SearchVector("tags", weight="B") +
+        SearchVector("content", weight="C")
+)
+
+
+from django.contrib.postgres.search import SearchQuery
+query = SearchQuery("django")
+Blog.objects.filter(search_vector=query)
+
+
+from django.contrib.postgres.search import SearchQuery, SearchRank
+query = SearchQuery("django")
+blogs = (
+    Blog.objects
+    .annotate(
+        rank=SearchRank("search_vector", query)
+        // on if weights rank=SearchRank("search_vector", query,weights=[0.1, 0.2, 0.4, 1.0])
+    )
+    .filter(search_vector=query,rank__gte=0.3)
+    .order_by("-rank")
+)
+
+//reommended is to create index from django and all index are stored in the database and we can use them for searching and if we have already created a index in postgresql then we dont need to create it again from django and we can use it directly for searching
+if we have multiple fields to update create a function and call it in the update method
+eg:
+    write a function to update the search_vector field
+
+Example: nine random model update functions to populate a SearchVectorField
+
+        from django.contrib.postgres.search import SearchVector
+
+        # 1. Blog
+        def update_blog_search_vector():
+            from myapp.models import Blog
+            Blog.objects.update(search_vector=SearchVector('title', 'content'))
+
+        # 2. Article
+        def update_article_search_vector():
+            from myapp.models import Article
+            Article.objects.update(search_vector=SearchVector('headline', 'body'))
+
+        # 3. Video
+        def update_video_search_vector():
+            from myapp.models import Video
+            Video.objects.update(search_vector=SearchVector('title', 'description'))
+
+        # 4. Product
+        def update_product_search_vector():
+            from myshop.models import Product
+            Product.objects.update(search_vector=SearchVector('name', 'summary', 'details'))
+
+        # 5. Comment
+        def update_comment_search_vector():
+            from myapp.models import Comment
+            Comment.objects.update(search_vector=SearchVector('author_name', 'text'))
+
+        # 6. UserProfile
+        def update_userprofile_search_vector():
+            from accounts.models import UserProfile
+            UserProfile.objects.update(search_vector=SearchVector('first_name', 'last_name', 'bio'))
+
+        # 7. Event
+        def update_event_search_vector():
+            from events.models import Event
+            Event.objects.update(search_vector=SearchVector('title', 'description', 'location'))
+
+        # 8. Recipe
+        def update_recipe_search_vector():
+            from recipes.models import Recipe
+            Recipe.objects.update(search_vector=SearchVector('title', 'ingredients', 'instructions'))
+
+        # 9. FAQ
+        def update_faq_search_vector():
+            from support.models import FAQ
+            FAQ.objects.update(search_vector=SearchVector('question', 'answer'))
+
+# Usage: call the appropriate function (e.g., update_blog_search_vector()) from a management command
+
+    # 10. Update all search_vector fields
+    def update_all_search_vectors():
+        update_blog_search_vector()
+        update_article_search_vector()
+        update_video_search_vector()
+        update_product_search_vector()
+        update_comment_search_vector()
+        update_userprofile_search_vector()
+        update_event_search_vector()
+        update_recipe_search_vector()
+        update_faq_search_vector()
+
+        then call update_all_search_vectors() in a management command or script to update all search_vector fields across your models.
+
+
+
+
+--===============================================================================================================================================================
+from django.shortcuts import render
+from django.contrib.postgres.search import SearchQuery, SearchRank
+from .models import Blog
+
+def search_blog(request):
+
+    search_text = request.GET.get("q", "").strip()
+
+    blogs = Blog.objects.none()
+
+    if search_text:
+
+        query = SearchQuery(search_text)
+
+        blogs = (
+            Blog.objects
+            .annotate(
+                rank=SearchRank("search_vector", query)
+                //(only if weights are specified)   rank=SearchRank("search_vector", query,weights=[0.1, 0.2, 0.4, 1.0])
+                //postgres assigns weights in this order: [D, C, B, A] only!!
+            )
+            .filter(
+                search_vector=query,
+                rank__gte=0.1
+            )
+            .order_by("-rank")
+        )
+
+    return render(
+        request,
+        "search.html",
+        {
+            "blogs": blogs,
+            "search_text": search_text
+        }
+    )
+--===============================================================================================================================================================
+//using the pg_trdm extension for trigram similarity search
+enable the pg_trgm extension in your PostgreSQL database. You can do this by running the following SQL command:
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+then: 
+
+CREATE INDEX blog_title_trgm
+ON blog
+USING gin(title gin_trgm_ops);
+
+django model creation for the above index:
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import OpClass
+class Meta:
+    indexes = [
+        GinIndex(
+            OpClass("title", name="gin_trgm_ops"),
+            name="title_trgm_idx",
+        ),
+    ]
+
+
+//updation is same as above for search_vector field
+
+then search query is:
+from django.contrib.postgres.search import (
+    SearchQuery,
+    SearchRank,
+    TrigramSimilarity,
+)
+query = SearchQuery(search_text)
+blogs = (
+    Blog.objects
+    .annotate(
+        rank=SearchRank("search_vector", query),
+        similarity=TrigramSimilarity("title", search_text),
+    )
+    .filter(
+        Q(search_vector=query) |
+        Q(similarity__gt=0.3)
+    )
+    .order_by("-rank", "-similarity")
+)
